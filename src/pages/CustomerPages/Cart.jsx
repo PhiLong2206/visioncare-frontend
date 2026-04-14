@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { useCart } from "../context/CartContext";
-import { createNewOrder } from "../utils/orderStorage";
+import { useCart } from "../../context/CartContext";
+import { createNewOrder } from "../../utils/orderStorage";
 
 function getOrderTypeLabel(orderType) {
   switch (orderType) {

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { getStoredOrders } from "../utils/orderStorage";
+import { getStoredOrders } from "../../utils/orderStorage";
 
 const FILTERS = ["Tất cả", "Chờ xác nhận", "Đang xử lý", "Hoàn thành"];
 

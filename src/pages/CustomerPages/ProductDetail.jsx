@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
-import { products } from "../data/products";
-import { useCart } from "../context/CartContext";
+import { products } from "../../data/products";
+import { useCart } from "../../context/CartContext";
 
 const ORDER_TYPE_LABELS = {
   "in-stock": "Mua thường",

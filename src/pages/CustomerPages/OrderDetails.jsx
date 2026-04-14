@@ -1,5 +1,5 @@
 import { Link, useParams } from "react-router-dom";
-import { getStoredOrders } from "../utils/orderStorage";
+import { getStoredOrders } from "../../utils/orderStorage";
 
 function getStatusClass(status) {
   switch (status) {
