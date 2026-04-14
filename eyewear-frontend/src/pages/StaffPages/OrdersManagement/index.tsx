@@ -1,96 +1,109 @@
-import { useState, ReactElement, useMemo } from "react";
+import { useState, ReactElement, useMemo, useEffect } from "react";
 import { CircleCheck, CircleAlert, CircleMinus, ChevronLeft, ChevronRight, Bell } from 'lucide-react'
 import { useNavigate } from "react-router-dom";
+import { getAllOrders, Order, ORDER_TYPE_STYLES, ORDERS_PER_PAGE, PrescriptionStatus, STATUS_STYLES } from "../../../api/staffAPI/orderAPI";
 
-type OrderType = "NORMAL" | "ON SITE" | "PRE-ORDER";
-type OrderStatus = "SENT TO LAB" | "AWAITING VERIFICATION" | "PROCESSING" | "CANCELLED";
-type PrescriptionStatus = "Verified" | "Manual Check Required" | "No Rx Attached";
+// type OrderType = "NORMAL" | "ON SITE" | "PRE-ORDER";
+// type OrderStatus = "SENT TO LAB" | "AWAITING VERIFICATION" | "PROCESSING" | "CANCELLED";
+// type PrescriptionStatus = "Verified" | "Manual Check Required" | "No Rx Attached";
 
-interface Order {
-  id: string;
-  customer: string;
-  email: string;
-  date: string;
-  orderType: OrderType;
-  prescription: PrescriptionStatus;
-  status: OrderStatus;
-}
+// interface Order {
+//   id: string;
+//   customer: string;
+//   email: string;
+//   date: string;
+//   orderType: OrderType;
+//   prescription: PrescriptionStatus;
+//   status: OrderStatus;
+// }
 
-// 20 sample orders so pagination across 4 pages is visible
-const BASE_ORDERS: Order[] = [
-  { id: "ORD-8821", customer: "Eleanor Shellstrop", email: "e.shell@example.com", date: "Oct 24, 2023", orderType: "NORMAL", prescription: "Verified", status: "SENT TO LAB" },
-  { id: "ORD-8822", customer: "Chidi Anagonye", email: "chidi.a@university.edu", date: "Oct 24, 2023", orderType: "ON SITE", prescription: "Manual Check Required", status: "AWAITING VERIFICATION" },
-  { id: "ORD-8823", customer: "Tahani Al-Jamil", email: "tahani@social.uk", date: "Oct 23, 2023", orderType: "PRE-ORDER", prescription: "Verified", status: "PROCESSING" },
-  { id: "ORD-8824", customer: "Jason Mendoza", email: "bortles@florida.com", date: "Oct 23, 2023", orderType: "NORMAL", prescription: "No Rx Attached", status: "CANCELLED" },
-  { id: "ORD-8825", customer: "Michael Realman", email: "michael@good.place", date: "Oct 22, 2023", orderType: "NORMAL", prescription: "Verified", status: "SENT TO LAB" },
-  { id: "ORD-8826", customer: "Janet Notarobot", email: "janet@void.space", date: "Oct 22, 2023", orderType: "ON SITE", prescription: "Verified", status: "PROCESSING" },
-  { id: "ORD-8827", customer: "Trevor Maplewood", email: "trevor@bad.place", date: "Oct 21, 2023", orderType: "PRE-ORDER", prescription: "Manual Check Required", status: "AWAITING VERIFICATION" },
-  { id: "ORD-8828", customer: "Simone Garnett", email: "simone@sydney.au", date: "Oct 21, 2023", orderType: "NORMAL", prescription: "Verified", status: "SENT TO LAB" },
-  { id: "ORD-8829", customer: "Pillboi Johnson", email: "pillboi@jacksonville.com", date: "Oct 20, 2023", orderType: "NORMAL", prescription: "No Rx Attached", status: "CANCELLED" },
-  { id: "ORD-8830", customer: "Kamilah Al-Jamil", email: "kamilah@art.world", date: "Oct 20, 2023", orderType: "ON SITE", prescription: "Verified", status: "PROCESSING" },
-  { id: "ORD-8831", customer: "Doug Forcett", email: "doug@calgary.ca", date: "Oct 19, 2023", orderType: "NORMAL", prescription: "Verified", status: "SENT TO LAB" },
-  { id: "ORD-8832", customer: "Mindy St. Claire", email: "mindy@medium.place", date: "Oct 19, 2023", orderType: "PRE-ORDER", prescription: "Manual Check Required", status: "AWAITING VERIFICATION" },
-  { id: "ORD-8833", customer: "Glenn Furlough", email: "glenn@accounting.com", date: "Oct 18, 2023", orderType: "NORMAL", prescription: "Verified", status: "PROCESSING" },
-  { id: "ORD-8834", customer: "Vicky Lightwood", email: "vicky@bad.place", date: "Oct 18, 2023", orderType: "ON SITE", prescription: "No Rx Attached", status: "CANCELLED" },
-  { id: "ORD-8835", customer: "Bambadjan Bamba", email: "bambadjan@good.place", date: "Oct 17, 2023", orderType: "NORMAL", prescription: "Verified", status: "SENT TO LAB" },
-  { id: "ORD-8836", customer: "Chris Baker", email: "chris@records.com", date: "Oct 17, 2023", orderType: "PRE-ORDER", prescription: "Verified", status: "PROCESSING" },
-  { id: "ORD-8837", customer: "Linda Nguyen", email: "linda@clinic.vn", date: "Oct 16, 2023", orderType: "NORMAL", prescription: "Manual Check Required", status: "AWAITING VERIFICATION" },
-  { id: "ORD-8838", customer: "Sam Torres", email: "sam@optometry.com", date: "Oct 16, 2023", orderType: "ON SITE", prescription: "Verified", status: "SENT TO LAB" },
-  { id: "ORD-8839", customer: "Priya Mehta", email: "priya@vision.in", date: "Oct 15, 2023", orderType: "NORMAL", prescription: "Verified", status: "PROCESSING" },
-  { id: "ORD-8840", customer: "Omar Shaikh", email: "omar@eyecare.ae", date: "Oct 15, 2023", orderType: "PRE-ORDER", prescription: "No Rx Attached", status: "CANCELLED" },
-];
+// // 20 sample orders so pagination across 4 pages is visible
+// const BASE_ORDERS: Order[] = [
+//   { id: "ORD-8821", customer: "Eleanor Shellstrop", email: "e.shell@example.com", date: "Oct 24, 2023", orderType: "NORMAL", prescription: "Verified", status: "SENT TO LAB" },
+//   { id: "ORD-8822", customer: "Chidi Anagonye", email: "chidi.a@university.edu", date: "Oct 24, 2023", orderType: "ON SITE", prescription: "Manual Check Required", status: "AWAITING VERIFICATION" },
+//   { id: "ORD-8823", customer: "Tahani Al-Jamil", email: "tahani@social.uk", date: "Oct 23, 2023", orderType: "PRE-ORDER", prescription: "Verified", status: "PROCESSING" },
+//   { id: "ORD-8824", customer: "Jason Mendoza", email: "bortles@florida.com", date: "Oct 23, 2023", orderType: "NORMAL", prescription: "No Rx Attached", status: "CANCELLED" },
+//   { id: "ORD-8825", customer: "Michael Realman", email: "michael@good.place", date: "Oct 22, 2023", orderType: "NORMAL", prescription: "Verified", status: "SENT TO LAB" },
+//   { id: "ORD-8826", customer: "Janet Notarobot", email: "janet@void.space", date: "Oct 22, 2023", orderType: "ON SITE", prescription: "Verified", status: "PROCESSING" },
+//   { id: "ORD-8827", customer: "Trevor Maplewood", email: "trevor@bad.place", date: "Oct 21, 2023", orderType: "PRE-ORDER", prescription: "Manual Check Required", status: "AWAITING VERIFICATION" },
+//   { id: "ORD-8828", customer: "Simone Garnett", email: "simone@sydney.au", date: "Oct 21, 2023", orderType: "NORMAL", prescription: "Verified", status: "SENT TO LAB" },
+//   { id: "ORD-8829", customer: "Pillboi Johnson", email: "pillboi@jacksonville.com", date: "Oct 20, 2023", orderType: "NORMAL", prescription: "No Rx Attached", status: "CANCELLED" },
+//   { id: "ORD-8830", customer: "Kamilah Al-Jamil", email: "kamilah@art.world", date: "Oct 20, 2023", orderType: "ON SITE", prescription: "Verified", status: "PROCESSING" },
+//   { id: "ORD-8831", customer: "Doug Forcett", email: "doug@calgary.ca", date: "Oct 19, 2023", orderType: "NORMAL", prescription: "Verified", status: "SENT TO LAB" },
+//   { id: "ORD-8832", customer: "Mindy St. Claire", email: "mindy@medium.place", date: "Oct 19, 2023", orderType: "PRE-ORDER", prescription: "Manual Check Required", status: "AWAITING VERIFICATION" },
+//   { id: "ORD-8833", customer: "Glenn Furlough", email: "glenn@accounting.com", date: "Oct 18, 2023", orderType: "NORMAL", prescription: "Verified", status: "PROCESSING" },
+//   { id: "ORD-8834", customer: "Vicky Lightwood", email: "vicky@bad.place", date: "Oct 18, 2023", orderType: "ON SITE", prescription: "No Rx Attached", status: "CANCELLED" },
+//   { id: "ORD-8835", customer: "Bambadjan Bamba", email: "bambadjan@good.place", date: "Oct 17, 2023", orderType: "NORMAL", prescription: "Verified", status: "SENT TO LAB" },
+//   { id: "ORD-8836", customer: "Chris Baker", email: "chris@records.com", date: "Oct 17, 2023", orderType: "PRE-ORDER", prescription: "Verified", status: "PROCESSING" },
+//   { id: "ORD-8837", customer: "Linda Nguyen", email: "linda@clinic.vn", date: "Oct 16, 2023", orderType: "NORMAL", prescription: "Manual Check Required", status: "AWAITING VERIFICATION" },
+//   { id: "ORD-8838", customer: "Sam Torres", email: "sam@optometry.com", date: "Oct 16, 2023", orderType: "ON SITE", prescription: "Verified", status: "SENT TO LAB" },
+//   { id: "ORD-8839", customer: "Priya Mehta", email: "priya@vision.in", date: "Oct 15, 2023", orderType: "NORMAL", prescription: "Verified", status: "PROCESSING" },
+//   { id: "ORD-8840", customer: "Omar Shaikh", email: "omar@eyecare.ae", date: "Oct 15, 2023", orderType: "PRE-ORDER", prescription: "No Rx Attached", status: "CANCELLED" },
+// ];
 
-const ORDERS_PER_PAGE = 5;
+// const ORDERS_PER_PAGE = 5;
 
-const ORDER_TYPE_STYLES: Record<OrderType, string> = {
-  NORMAL: "bg-blue-100 text-blue-700",
-  "ON SITE": "bg-green-100 text-green-700",
-  "PRE-ORDER": "bg-purple-100 text-purple-700",
-};
+// const ORDER_TYPE_STYLES: Record<OrderType, string> = {
+//   NORMAL: "bg-blue-100 text-blue-700",
+//   "ON SITE": "bg-green-100 text-green-700",
+//   "PRE-ORDER": "bg-purple-100 text-purple-700",
+// };
 
-const STATUS_STYLES: Record<OrderStatus, string> = {
-  "SENT TO LAB": "bg-teal-100 text-teal-700",
-  "AWAITING VERIFICATION": "bg-orange-100 text-orange-700",
-  PROCESSING: "bg-gray-200 text-gray-600",
-  CANCELLED: "bg-red-100 text-red-600",
-};
+// const STATUS_STYLES: Record<OrderStatus, string> = {
+//   "SENT TO LAB": "bg-teal-100 text-teal-700",
+//   "AWAITING VERIFICATION": "bg-orange-100 text-orange-700",
+//   PROCESSING: "bg-gray-200 text-gray-600",
+//   CANCELLED: "bg-red-100 text-red-600",
+// };
 
 const PRESCRIPTION_ICON: Record<PrescriptionStatus, ReactElement> = {
   Verified: (
     <span className="inline-flex items-center gap-1 text-teal-600 font-medium text-sm">
       <CircleCheck className="w-4 h-4" />
-      Verified
+      Đã xác nhận
     </span>
   ),
   "Manual Check Required": (
     <span className="inline-flex items-center gap-1 text-orange-500 font-medium text-sm">
       <CircleAlert className="w-4 h-4" />
-      Manual Check Required
+      Yêu cầu kiểm tra thủ công
     </span>
   ),
   "No Rx Attached": (
     <span className="inline-flex items-center gap-1 text-gray-400 font-medium text-sm">
       <CircleMinus className="w-4 h-4" />
-      No Rx Attached
+      Không có chỉ số kèm theo.
     </span>
   ),
 };
 
 export default function OrdersManagement() {
-  const [orderTypeFilter, setOrderTypeFilter] = useState("All Types");
-  const [statusFilter, setStatusFilter] = useState("All Statuses");
+  const [orderTypeFilter, setOrderTypeFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
+
+  const [orders, setOrders] = useState<Order[] | []>([]);
 
   const navigate = useNavigate()
 
+  const fetchOrders = async () => {
+    const fetchOrders = await getAllOrders();
+    setOrders(fetchOrders)
+  }
+  fetchOrders()
+
+  useEffect(() => {
+    fetchOrders()
+  }, [orders, orderTypeFilter, statusFilter])
+
   // Filter — recomputed only when filters change
   const filtered = useMemo(() => {
-    return BASE_ORDERS.filter((o) => {
-      const typeOk = orderTypeFilter === "All Types" || o.orderType === orderTypeFilter;
-      const statusOk = statusFilter === "All Statuses" || o.status === statusFilter;
+    return orders.filter((o) => {
+      const typeOk = orderTypeFilter === "All" || o.orderType === orderTypeFilter;
+      const statusOk = statusFilter === "All" || o.status === statusFilter;
       return typeOk && statusOk;
     });
-  }, [orderTypeFilter, statusFilter]);
+  }, [orders, orderTypeFilter, statusFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ORDERS_PER_PAGE));
 
@@ -102,8 +115,8 @@ export default function OrdersManagement() {
   };
 
   const handleReset = () => {
-    setOrderTypeFilter("All Types");
-    setStatusFilter("All Statuses");
+    setOrderTypeFilter("All");
+    setStatusFilter("All");
     setCurrentPage(1);
   };
 
@@ -133,8 +146,8 @@ export default function OrdersManagement() {
     <main className="flex-1 overflow-y-auto px-8 py-6">
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Orders Management</h1>
-          <p className="text-sm text-gray-400 mt-1">Manage, verify, and track all vision care prescriptions and fulfillment.</p>
+          <h1 className="text-2xl font-bold text-gray-900">Quản lý đơn hàng</h1>
+          <p className="text-sm text-gray-400 mt-1">Quản lý, xác minh và theo dõi tất cả các đơn thuốc và quy trình cấp phát thuốc chăm sóc thị lực.</p>
         </div>
       </div>
 
@@ -142,26 +155,26 @@ export default function OrdersManagement() {
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-5 py-4 mb-4">
         <div className="flex items-center gap-4">
           <div>
-            <label className="block text-xs font-semibold text-gray-400 tracking-widest mb-1.5">ORDER TYPE</label>
+            <label className="block text-xs font-semibold text-gray-400 tracking-widest mb-1.5">LOẠI ĐƠN HÀNG</label>
             <select
               value={orderTypeFilter}
               onChange={(e) => handleFilterChange("orderType", e.target.value)}
               className="text-sm border border-gray-200 rounded-lg px-3 py-2 pr-8 bg-white focus:outline-none focus:ring-1 focus:ring-teal-400 appearance-none cursor-pointer min-w-32"
             >
-              <option>All Types</option>
+              <option>All</option>
               <option>NORMAL</option>
               <option>ON SITE</option>
               <option>PRE-ORDER</option>
             </select>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-400 tracking-widest mb-1.5">STATUS</label>
+            <label className="block text-xs font-semibold text-gray-400 tracking-widest mb-1.5">TRẠNG THÁI</label>
             <select
               value={statusFilter}
               onChange={(e) => handleFilterChange("status", e.target.value)}
               className="text-sm border border-gray-200 rounded-lg px-3 py-2 pr-8 bg-white focus:outline-none focus:ring-1 focus:ring-teal-400 appearance-none cursor-pointer min-w-36"
             >
-              <option>All Statuses</option>
+              <option>All</option>
               <option>SENT TO LAB</option>
               <option>AWAITING VERIFICATION</option>
               <option>PROCESSING</option>
@@ -169,17 +182,17 @@ export default function OrdersManagement() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-400 tracking-widest mb-1.5">DATE RANGE</label>
+            <label className="block text-xs font-semibold text-gray-400 tracking-widest mb-1.5">NGÀY</label>
             <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2 bg-white min-w-40 cursor-pointer">
               <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <span className="text-sm text-gray-400">Select dates...</span>
+              <span className="text-sm text-gray-400">Chọn ngày...</span>
             </div>
           </div>
           <div className="flex-1" />
           <button onClick={handleReset} className="text-sm text-teal-500 font-semibold hover:text-teal-700 mt-5 transition-colors">
-            Reset Filters
+            Đặt lại bộ lọc
           </button>
         </div>
       </div>
@@ -189,7 +202,7 @@ export default function OrdersManagement() {
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-100">
-              {["ORDER ID", "CUSTOMER", "DATE", "ORDER TYPE", "PRESCRIPTION", "STATUS", "ACTIONS"].map((h) => (
+              {["ORDER ID", "KHÁCH HÀNG", "NGÀY", "LOẠI ĐƠN HÀNG", "CHỈ SỐ", "TRẠNG THÁI", "HÀNH ĐỘNG"].map((h) => (
                 <th key={h} className="text-left text-xs font-semibold text-gray-400 tracking-widest px-5 py-3.5">{h}</th>
               ))}
             </tr>
@@ -198,7 +211,7 @@ export default function OrdersManagement() {
             {paginated.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-5 py-10 text-center text-sm text-gray-400">
-                  No orders match the selected filters.
+                  Không có đơn hàng theo bộ lọc
                 </td>
               </tr>
             ) : (
