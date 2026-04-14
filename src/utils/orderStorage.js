@@ -28,8 +28,23 @@ export function generateOrderId(existingOrders) {
   return `${prefix}${String(nextNumber).padStart(3, "0")}`;
 }
 
-export function createNewOrder(cartItems, totalPrice) {
+function getPaymentMethodLabel(paymentMethod) {
+  switch (paymentMethod) {
+    case "cod":
+      return "Thanh toán khi nhận hàng";
+    case "bank":
+      return "Chuyển khoản ngân hàng";
+    case "card":
+      return "Thẻ tín dụng / Ghi nợ";
+    default:
+      return "Chưa xác định";
+  }
+}
+
+export function createNewOrder(cartItems, totalPrice, formData) {
   const existingOrders = getStoredOrders();
+
+  const shippingFee = totalPrice >= 2000000 ? 0 : 30000;
 
   const newOrder = {
     id: generateOrderId(existingOrders),
@@ -37,7 +52,15 @@ export function createNewOrder(cartItems, totalPrice) {
     status: "Chờ xác nhận",
     shippingUnit: "GHN",
     trackingCode: `GHN${Date.now()}`,
-    total: totalPrice + 30000,
+
+    customerName: formData.fullName,
+    phone: formData.phone,
+    email: formData.email,
+    address: `${formData.address}, ${formData.ward}, ${formData.district}, ${formData.city}`,
+    paymentMethod: getPaymentMethodLabel(formData.paymentMethod),
+
+    total: totalPrice + shippingFee,
+
     items: cartItems.map((item) => ({
       id: item.id,
       name: item.name,

@@ -5,20 +5,16 @@ import { useAuth } from "../context/AuthContext";
 
 function Navbar() {
   const { cartCount } = useCart();
-  const { user, isLoggedIn, login, logout } = useAuth();
+  const { user, isLoggedIn, logout } = useAuth();
   const navigate = useNavigate();
-
-  const handleLogin = () => {
-    login();
-    toast.success("Đăng nhập thành công!");
-    navigate("/dashboard");
-  };
 
   const handleLogout = () => {
     logout();
     toast.success("Đăng xuất thành công!");
-    navigate("/");
+    navigate("/login");
   };
+
+  const dashboardLink = user?.role === "staff" ? "/staff" : "/orders";
 
   return (
     <div className="w-full border-b border-gray-200 bg-white">
@@ -59,14 +55,14 @@ function Navbar() {
           {isLoggedIn ? (
             <>
               <span className="hidden rounded-full bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 md:inline-flex">
-                Xin chào, {user.name}
+                Xin chào, {user?.name}
               </span>
 
               <Link
-                to="/dashboard"
+                to={dashboardLink}
                 className="rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-100"
               >
-                Dashboard
+                {user?.role === "staff" ? "Staff" : "Tài khoản"}
               </Link>
 
               <button
@@ -79,21 +75,19 @@ function Navbar() {
             </>
           ) : (
             <>
-              <button
-                type="button"
-                onClick={handleLogin}
+              <Link
+                to="/login"
                 className="rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-100"
               >
                 Đăng nhập
-              </button>
+              </Link>
 
-              <button
-                type="button"
-                onClick={handleLogin}
+              <Link
+                to="/register"
                 className="rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800"
               >
                 Đăng ký
-              </button>
+              </Link>
             </>
           )}
         </div>

@@ -58,7 +58,7 @@ function Checkout() {
   const handlePlaceOrder = () => {
     if (!validateForm()) return;
 
-    createNewOrder(cartItems, totalPrice);
+    createNewOrder(cartItems, finalTotal, formData);
     clearCart();
 
     toast.success("Đặt hàng thành công!");
@@ -148,7 +148,7 @@ function Checkout() {
                 type="text"
                 value={formData.address}
                 onChange={(e) => handleChange("address", e.target.value)}
-                placeholder="Số nhà, đường, phường/xã"
+                placeholder="Số nhà, đường"
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
               />
             </div>
@@ -204,9 +204,7 @@ function Checkout() {
                   name="paymentMethod"
                   value="cod"
                   checked={formData.paymentMethod === "cod"}
-                  onChange={(e) =>
-                    handleChange("paymentMethod", e.target.value)
-                  }
+                  onChange={(e) => handleChange("paymentMethod", e.target.value)}
                 />
                 <span className="text-slate-900">
                   Thanh toán khi nhận hàng (COD)
@@ -219,9 +217,7 @@ function Checkout() {
                   name="paymentMethod"
                   value="bank"
                   checked={formData.paymentMethod === "bank"}
-                  onChange={(e) =>
-                    handleChange("paymentMethod", e.target.value)
-                  }
+                  onChange={(e) => handleChange("paymentMethod", e.target.value)}
                 />
                 <span className="text-slate-900">Chuyển khoản ngân hàng</span>
               </label>
@@ -232,9 +228,7 @@ function Checkout() {
                   name="paymentMethod"
                   value="card"
                   checked={formData.paymentMethod === "card"}
-                  onChange={(e) =>
-                    handleChange("paymentMethod", e.target.value)
-                  }
+                  onChange={(e) => handleChange("paymentMethod", e.target.value)}
                 />
                 <span className="text-slate-900">Thẻ tín dụng / Ghi nợ</span>
               </label>

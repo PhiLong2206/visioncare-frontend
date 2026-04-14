@@ -1,7 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
 import { useCart } from "../../context/CartContext";
-import { createNewOrder } from "../../utils/orderStorage";
+
 
 function getOrderTypeLabel(orderType) {
   switch (orderType) {
@@ -23,17 +22,7 @@ function Cart() {
   const shippingFee = cartItems.length > 0 ? 30000 : 0;
   const finalTotal = totalPrice + shippingFee;
 
-  const handleCheckout = () => {
-    if (cartItems.length === 0) {
-      toast.error("Giỏ hàng đang trống.");
-      return;
-    }
 
-    createNewOrder(cartItems, totalPrice);
-    clearCart();
-    toast.success("Đặt hàng thành công!");
-    navigate("/orders");
-  };
 
   return (
     <section className="mx-auto max-w-7xl px-6 py-10">
@@ -199,13 +188,13 @@ function Cart() {
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={handleCheckout}
-              className="mt-6 w-full rounded-2xl bg-slate-900 px-6 py-3 font-semibold text-white transition hover:opacity-90"
-            >
-              Thanh toán
-            </button>
+          <button
+  type="button"
+  onClick={() => navigate("/checkout")}
+  className="mt-6 w-full rounded-2xl bg-slate-900 px-6 py-3 font-semibold text-white transition hover:opacity-90"
+>
+  Thanh toán
+</button>
 
             <p className="mt-4 text-center text-xs text-slate-400">
               Miễn phí đổi trả trong 7 ngày đối với sản phẩm lỗi.
