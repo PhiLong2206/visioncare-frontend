@@ -1,12 +1,23 @@
 import { useEffect, useMemo, useState } from "react";
-import { getStoredOrders } from "../../utils/orderStorage";
+import { getStoredOrders, saveOrders } from "../../utils/orderStorage";
 
-const FILTERS = ["Tất cả", "Chờ xác nhận", "Đang xử lý", "Hoàn thành"];
+const FILTERS = [
+  "Tất cả",
+  "Chờ xác nhận",
+  "Đang xử lý",
+  "Sẵn sàng giao hàng",
+  "Đang giao hàng",
+  "Hoàn thành",
+];
 
 function getStatusClass(status) {
   switch (status) {
     case "Hoàn thành":
       return "bg-green-50 text-green-600 border-green-200";
+    case "Đang giao hàng":
+      return "bg-blue-50 text-blue-600 border-blue-200";
+    case "Sẵn sàng giao hàng":
+      return "bg-amber-50 text-amber-700 border-amber-200";
     case "Đang xử lý":
       return "bg-cyan-50 text-cyan-600 border-cyan-200";
     case "Chờ xác nhận":
@@ -42,6 +53,19 @@ function Orders() {
     if (activeFilter === "Tất cả") return orders;
     return orders.filter((order) => order.status === activeFilter);
   }, [orders, activeFilter]);
+
+  const handleConfirmReceived = (orderId) => {
+    const updatedOrders = orders.map((order) =>
+      order.id === orderId ? { ...order, status: "Hoàn thành" } : order
+    );
+
+    setOrders(updatedOrders);
+    saveOrders(updatedOrders);
+
+    setSelectedOrder((prev) =>
+      prev && prev.id === orderId ? { ...prev, status: "Hoàn thành" } : prev
+    );
+  };
 
   return (
     <>
@@ -145,17 +169,28 @@ function Orders() {
 
                   <div className="mt-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div className="flex flex-wrap items-center gap-3 text-slate-500">
-                      <span>{order.shippingUnit || "Chưa cập nhật đơn vị vận chuyển"}</span>
+                      <span>
+                        {order.shippingUnit || "Chưa cập nhật đơn vị vận chuyển"}
+                      </span>
 
                       <span className="rounded-full border border-slate-200 px-3 py-1 text-sm font-medium text-slate-700">
                         {order.trackingCode || "Chưa có mã vận đơn"}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-3 md:justify-end">
                       <p className="text-3xl font-bold text-teal-600">
                         {Number(order.total || 0).toLocaleString("vi-VN")} đ
                       </p>
+
+                      {order.status === "Đang giao hàng" && (
+                        <button
+                          onClick={() => handleConfirmReceived(order.id)}
+                          className="rounded-xl bg-teal-500 px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+                        >
+                          Đã nhận được hàng
+                        </button>
+                      )}
 
                       <button
                         onClick={() => setSelectedOrder(order)}
@@ -235,7 +270,9 @@ function Orders() {
             </div>
 
             <div className="mt-6 border-t pt-4">
-              <h3 className="mb-3 text-lg font-semibold text-slate-900">Sản phẩm</h3>
+              <h3 className="mb-3 text-lg font-semibold text-slate-900">
+                Sản phẩm
+              </h3>
 
               <div className="space-y-3">
                 {selectedOrder.items?.map((item, index) => (
@@ -271,11 +308,22 @@ function Orders() {
               </div>
             </div>
 
-            <div className="mt-6 flex items-center justify-between border-t pt-4 text-lg font-bold text-teal-600">
-              <span>Tổng cộng</span>
-              <span>
-                {Number(selectedOrder.total || 0).toLocaleString("vi-VN")} đ
-              </span>
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t pt-4">
+              <div className="text-lg font-bold text-teal-600">
+                <span>Tổng cộng: </span>
+                <span>
+                  {Number(selectedOrder.total || 0).toLocaleString("vi-VN")} đ
+                </span>
+              </div>
+
+              {selectedOrder.status === "Đang giao hàng" && (
+                <button
+                  onClick={() => handleConfirmReceived(selectedOrder.id)}
+                  className="rounded-xl bg-teal-500 px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+                >
+                  Đã nhận được hàng
+                </button>
+              )}
             </div>
           </div>
         </div>

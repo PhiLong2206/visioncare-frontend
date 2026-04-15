@@ -2,7 +2,48 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { products } from "../../data/products";
 
-const categories = ["Tất cả", "Kính cận", "Kính râm", "Kính thời trang", "Gọng Kính"];
+const categories = [
+  "Tất cả",
+  "Kính cận",
+  "Kính râm",
+  "Kính thời trang",
+  "Gọng Kính",
+];
+
+function getAvailability(item) {
+  const hasPreOrder = item.availableOrderTypes?.includes("pre-order");
+  const isOutOfStock = Number(item.stock || 0) === 0;
+
+  if (isOutOfStock && hasPreOrder) {
+    return {
+      label: "Hết hàng - đặt trước",
+      className: "bg-amber-50 text-amber-700 border-amber-200",
+      helperText: "Sản phẩm đang hết hàng, bạn vẫn có thể đặt trước",
+    };
+  }
+
+  if (!isOutOfStock && hasPreOrder) {
+    return {
+      label: "Có sẵn + đặt trước",
+      className: "bg-amber-50 text-amber-700 border-amber-200",
+      helperText: "Sản phẩm có sẵn và hỗ trợ đặt trước",
+    };
+  }
+
+  if (isOutOfStock) {
+    return {
+      label: "Hết hàng",
+      className: "bg-slate-100 text-slate-600 border-slate-200",
+      helperText: "Sản phẩm hiện đang tạm hết hàng",
+    };
+  }
+
+  return {
+    label: "Có sẵn",
+    className: "bg-green-50 text-green-700 border-green-200",
+    helperText: "",
+  };
+}
 
 function Products() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -24,8 +65,8 @@ function Products() {
       const matchSearch =
         item.name.toLowerCase().includes(keyword) ||
         item.category.toLowerCase().includes(keyword) ||
-        item.frameType.toLowerCase().includes(keyword) ||
-        item.color.toLowerCase().includes(keyword);
+        (item.frameType || "").toLowerCase().includes(keyword) ||
+        (item.color || "").toLowerCase().includes(keyword);
 
       return matchCategory && matchSearch;
     });
@@ -116,79 +157,97 @@ function Products() {
       </div>
 
       {filteredProducts.length === 0 ? (
-       <div className="flex flex-col items-center justify-center rounded-3xl bg-white p-12 text-center shadow-sm">
-  <div className="text-5xl">🔍</div>
+        <div className="flex flex-col items-center justify-center rounded-3xl bg-white p-12 text-center shadow-sm">
+          <div className="text-5xl">🔍</div>
 
-  <h2 className="mt-4 text-2xl font-bold text-slate-900">
-    Không tìm thấy sản phẩm
-  </h2>
+          <h2 className="mt-4 text-2xl font-bold text-slate-900">
+            Không tìm thấy sản phẩm
+          </h2>
 
-  <p className="mt-2 text-slate-500">
-    Thử thay đổi từ khóa hoặc bộ lọc
-  </p>
+          <p className="mt-2 text-slate-500">
+            Thử thay đổi từ khóa hoặc bộ lọc
+          </p>
 
-  <button
-    onClick={handleResetFilters}
-    className="mt-6 rounded-2xl bg-slate-900 px-6 py-3 text-white hover:opacity-90"
-  >
-    Reset bộ lọc
-  </button>
-</div>
+          <button
+            onClick={handleResetFilters}
+            className="mt-6 rounded-2xl bg-slate-900 px-6 py-3 text-white hover:opacity-90"
+          >
+            Reset bộ lọc
+          </button>
+        </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-          {filteredProducts.map((item) => (
-            <Link
-              key={item.id}
-              to={`/product/${item.id}`}
-              className="block overflow-hidden rounded-2xl bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md"
-            >
-              <div className="relative h-60 overflow-hidden bg-slate-50">
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="h-full w-full object-cover transition duration-300 hover:scale-105"
-                />
+          {filteredProducts.map((item) => {
+            const availability = getAvailability(item);
 
-                {item.discount && (
-                  <span className="absolute left-3 top-3 rounded-full bg-red-500 px-3 py-1 text-xs font-medium text-white">
-                    {item.discount}
-                  </span>
-                )}
-              </div>
+            return (
+              <Link
+                key={item.id}
+                to={`/product/${item.id}`}
+                className="block overflow-hidden rounded-2xl bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+              >
+                <div className="relative h-60 overflow-hidden bg-slate-50">
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="h-full w-full object-cover transition duration-300 hover:scale-105"
+                  />
 
-              <div className="p-4">
-                <p className="text-sm text-slate-500">
-                  {item.category}
-                  {item.frameType ? ` · ${item.frameType}` : ""}
-                </p>
+                  <div className="absolute left-3 top-3 flex flex-col gap-2">
+                    {item.discount && (
+                      <span className="rounded-full bg-red-500 px-3 py-1 text-xs font-medium text-white">
+                        {item.discount}
+                      </span>
+                    )}
 
-                <h3 className="mt-1 text-lg font-semibold text-slate-900">
-                  {item.name}
-                </h3>
-
-                <div className="mt-2 flex items-center gap-2">
-                  <span className="text-lg font-bold text-teal-600">
-                    {item.price.toLocaleString("vi-VN")} đ
-                  </span>
-
-                  {item.oldPrice && (
-                    <span className="text-sm text-gray-400 line-through">
-                      {item.oldPrice.toLocaleString("vi-VN")} đ
+                    <span
+                      className={`rounded-full border px-3 py-1 text-xs font-medium ${availability.className}`}
+                    >
+                      {availability.label}
                     </span>
+                  </div>
+                </div>
+
+                <div className="p-4">
+                  <p className="text-sm text-slate-500">
+                    {item.category}
+                    {item.frameType ? ` · ${item.frameType}` : ""}
+                  </p>
+
+                  <h3 className="mt-1 text-lg font-semibold text-slate-900">
+                    {item.name}
+                  </h3>
+
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="text-lg font-bold text-teal-600">
+                      {item.price.toLocaleString("vi-VN")} đ
+                    </span>
+
+                    {item.oldPrice && (
+                      <span className="text-sm text-gray-400 line-through">
+                        {item.oldPrice.toLocaleString("vi-VN")} đ
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="mt-2 flex items-center gap-2 text-sm text-slate-500">
+                    <span className="text-yellow-500">⭐ {item.rating}</span>
+                    <span>({item.reviews} đánh giá)</span>
+                  </div>
+
+                  <p className="mt-2 text-sm text-slate-500">
+                    {item.color} · {item.size}
+                  </p>
+
+                  {availability.helperText && (
+                    <p className="mt-3 text-sm font-medium text-amber-700">
+                      {availability.helperText}
+                    </p>
                   )}
                 </div>
-
-                <div className="mt-2 flex items-center gap-2 text-sm text-slate-500">
-                  <span className="text-yellow-500">⭐ {item.rating}</span>
-                  <span>({item.reviews} đánh giá)</span>
-                </div>
-
-                <p className="mt-2 text-sm text-slate-500">
-                  {item.color} · {item.size}
-                </p>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       )}
     </section>

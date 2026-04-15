@@ -3,14 +3,20 @@ import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
 
+const STAFF_ROLE_IDS = [1, 2, 3];
+const STAFF_ROLE_NAMES = ["Admin", "Manager", "Sales"];
+const OPERATION_ROLE_ID = 4;
+const OPERATION_ROLE_NAME = "Operations";
+
 function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const [formData, setFormData] = useState({
-    email: "customer@visioncare.vn",
-    password: "123456",
+    email: "",
+    password: "",
   });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (field, value) => {
@@ -20,21 +26,53 @@ function Login() {
     }));
   };
 
+  const isGeneralStaffUser = (authUser) => {
+    if (!authUser) return false;
+
+    if (authUser.roleId != null) {
+      return STAFF_ROLE_IDS.includes(Number(authUser.roleId));
+    }
+
+    return STAFF_ROLE_NAMES.includes(authUser.role);
+  };
+
+  const isOperationUser = (authUser) => {
+    if (!authUser) return false;
+
+    if (authUser.roleId != null) {
+      return Number(authUser.roleId) === OPERATION_ROLE_ID;
+    }
+
+    return authUser.role === OPERATION_ROLE_NAME;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!formData.email.trim() || !formData.password.trim()) {
+      toast.error("Vui lòng nhập email và mật khẩu.");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
-      const authUser = await login(formData);
+
+      const authUser = await login({
+        email: formData.email,
+        password: formData.password,
+      });
 
       toast.success("Đăng nhập thành công!");
 
-      if (authUser.role === "staff") {
+      if (isOperationUser(authUser)) {
+        navigate("/operation");
+      } else if (isGeneralStaffUser(authUser)) {
         navigate("/staff");
       } else {
         navigate("/");
       }
     } catch (error) {
+      console.error(error);
       toast.error(error.message || "Đăng nhập thất bại.");
     } finally {
       setIsSubmitting(false);
@@ -55,12 +93,6 @@ function Login() {
         <p className="mt-3 text-center text-lg text-slate-500">
           Đăng nhập để tiếp tục mua sắm hoặc quản lý hệ thống
         </p>
-
-        <div className="mt-6 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
-          Demo customer: customer@visioncare.vn / 123456
-          <br />
-          Demo staff: staff@visioncare.vn / 123456
-        </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           <div>
