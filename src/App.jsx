@@ -19,6 +19,8 @@ import Checkout from "./pages/CustomerPages/Checkout";
 import StaffPage from "./pages/StaffPages/index";
 import StaffOrderDetail from "./pages/StaffPages/OrdersManagement/OrderDetail/index";
 
+import ManagerPage from "./pages/ManagerPages/index"
+
 function Home() {
   return (
     <>
@@ -33,7 +35,7 @@ function Home() {
 function AppContent() {
   const location = useLocation();
 
-  const isStaffRoute = location.pathname.startsWith("/staff");
+  const isStaffRoute = location.pathname.startsWith("/staff") || location.pathname.startsWith("/manager");
   const isAuthRoute =
     location.pathname === "/login" || location.pathname === "/register";
 
@@ -55,6 +57,8 @@ function AppContent() {
 
         <Route path="/staff" element={<StaffPage />} />
         <Route path="/staff/orders/:id" element={<StaffOrderDetail />} />
+
+        <Route path="/manager" element={<ManagerPage />} />
       </Routes>
 
       {!isStaffRoute && !isAuthRoute && <Footer />}
