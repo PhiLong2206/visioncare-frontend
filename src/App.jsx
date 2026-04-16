@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
+import OperationPage from "./pages/OperationPages/OperationPage";
 import Hero from "./components/Hero";
 import Benefits from "./components/Benefits";
 import Categories from "./components/Categories";
@@ -36,12 +37,15 @@ function AppContent() {
   const location = useLocation();
 
   const isStaffRoute = location.pathname.startsWith("/staff") || location.pathname.startsWith("/manager");
+  const isOperationRoute = location.pathname.startsWith("/operation");
   const isAuthRoute =
     location.pathname === "/login" || location.pathname === "/register";
 
+  const hideLayout = isStaffRoute || isOperationRoute || isAuthRoute;
+
   return (
     <div className="min-h-screen bg-[#f6f7f9]">
-      {!isStaffRoute && !isAuthRoute && <Navbar />}
+      {!hideLayout && <Navbar />}
 
       <Routes>
         <Route path="/" element={<Home />} />
@@ -59,9 +63,11 @@ function AppContent() {
         <Route path="/staff/orders/:id" element={<StaffOrderDetail />} />
 
         <Route path="/manager" element={<ManagerPage />} />
+
+        <Route path="/operation" element={<OperationPage />} />
       </Routes>
 
-      {!isStaffRoute && !isAuthRoute && <Footer />}
+      {!hideLayout && <Footer />}
     </div>
   );
 }

@@ -14,6 +14,7 @@ function Register() {
     password: "",
     confirmPassword: "",
   });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (field, value) => {
@@ -66,6 +67,7 @@ function Register() {
       toast.success("Đăng ký thành công!");
       navigate("/login");
     } catch (error) {
+      console.error(error);
       toast.error(error.message || "Đăng ký thất bại.");
     } finally {
       setIsSubmitting(false);

@@ -36,30 +36,83 @@ function getPaymentMethodLabel(paymentMethod) {
       return "Chuyển khoản ngân hàng";
     case "card":
       return "Thẻ tín dụng / Ghi nợ";
+    case "vnpay":
+      return "VNPay";
+    case "sepay":
+      return "Sepay";
+    case "payos":
+      return "PayOS";
     default:
       return "Chưa xác định";
   }
 }
 
+function detectOrderFlow(cartItems) {
+  const hasPreOrder = cartItems.some((item) => item.orderType === "pre-order");
+  const hasPrescription = cartItems.some(
+    (item) => item.orderType === "prescription"
+  );
+
+  if (hasPreOrder) return "pre-order";
+  if (hasPrescription) return "prescription";
+  return "normal";
+}
+
+function getInitialStatusByFlow(flowType) {
+  switch (flowType) {
+    case "pre-order":
+      return "Chờ xác nhận";
+    case "prescription":
+      return "Chờ xác nhận";
+    case "normal":
+    default:
+      return "Chờ xác nhận";
+  }
+}
+
+function getOrderTags(cartItems) {
+  const tags = [];
+
+  if (cartItems.some((item) => item.orderType === "pre-order")) {
+    tags.push("pre-order");
+  }
+
+  if (cartItems.some((item) => item.orderType === "prescription")) {
+    tags.push("prescription");
+  }
+
+  if (cartItems.some((item) => item.orderType === "in-stock")) {
+    tags.push("in-stock");
+  }
+
+  return tags;
+}
+
 export function createNewOrder(cartItems, totalPrice, formData) {
   const existingOrders = getStoredOrders();
 
-  const shippingFee = totalPrice >= 2000000 ? 0 : 30000;
+  const flowType = detectOrderFlow(cartItems);
+  const initialStatus = getInitialStatusByFlow(flowType);
 
   const newOrder = {
     id: generateOrderId(existingOrders),
     date: new Date().toISOString().split("T")[0],
-    status: "Chờ xác nhận",
-    shippingUnit: "GHN",
-    trackingCode: `GHN${Date.now()}`,
 
-    customerName: formData.fullName,
-    phone: formData.phone,
-    email: formData.email,
-    address: `${formData.address}, ${formData.ward}, ${formData.district}, ${formData.city}`,
+    status: initialStatus,
+    flowType,
+    tags: getOrderTags(cartItems),
+
+    shippingUnit: "",
+    trackingCode: "",
+
+    customerName: formData.fullName || "",
+    phone: formData.phone || "",
+    email: formData.email || "",
+    address: formData.address || "",
     paymentMethod: getPaymentMethodLabel(formData.paymentMethod),
+    paymentMethodCode: formData.paymentMethod || "",
 
-    total: totalPrice + shippingFee,
+    total: totalPrice,
 
     items: cartItems.map((item) => ({
       id: item.id,
@@ -69,6 +122,8 @@ export function createNewOrder(cartItems, totalPrice, formData) {
       price: item.price,
       color: item.color,
       size: item.size,
+      category: item.category || "",
+      frameType: item.frameType || "",
       orderType: item.orderType || "in-stock",
       prescription: item.prescription || null,
     })),
@@ -78,4 +133,53 @@ export function createNewOrder(cartItems, totalPrice, formData) {
   saveOrders(updatedOrders);
 
   return newOrder;
+}
+
+export function updateOrderStatus(orderId, newStatus) {
+  const orders = getStoredOrders();
+
+  const updatedOrders = orders.map((order) =>
+    order.id === orderId
+      ? {
+          ...order,
+          status: newStatus,
+        }
+      : order
+  );
+
+  saveOrders(updatedOrders);
+  return updatedOrders;
+}
+
+export function updateOrderShipping(orderId, shippingData) {
+  const orders = getStoredOrders();
+
+  const updatedOrders = orders.map((order) =>
+    order.id === orderId
+      ? {
+          ...order,
+          shippingUnit: shippingData.shippingUnit ?? order.shippingUnit,
+          trackingCode: shippingData.trackingCode ?? order.trackingCode,
+        }
+      : order
+  );
+
+  saveOrders(updatedOrders);
+  return updatedOrders;
+}
+
+export function updateOrderById(orderId, patchData) {
+  const orders = getStoredOrders();
+
+  const updatedOrders = orders.map((order) =>
+    order.id === orderId
+      ? {
+          ...order,
+          ...patchData,
+        }
+      : order
+  );
+
+  saveOrders(updatedOrders);
+  return updatedOrders;
 }
