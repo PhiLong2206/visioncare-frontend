@@ -19,7 +19,6 @@ export const products = [
     description: "Gọng kính phong cách cổ điển, bền bỉ và thời trang.",
     rating: 4.8,
     reviews: 124,
-    availableOrderTypes: ["in-stock", "prescription"],
   },
   {
     id: 2,
@@ -34,7 +33,6 @@ export const products = [
     description: "Thiết kế hiện đại, phù hợp cho phong cách năng động.",
     rating: 4.5,
     reviews: 89,
-    availableOrderTypes: ["pre-order"],
   },
   {
     id: 3,
@@ -51,12 +49,11 @@ export const products = [
     description: "Kiểu dáng thời trang, thanh lịch và nữ tính.",
     rating: 4.9,
     reviews: 67,
-    availableOrderTypes: ["in-stock", "pre-order", "prescription"],
   },
   {
     id: 4,
     name: "Titanium Ditano Helio Vault D125",
-    category: "Gọng Kính",
+    category: "Gọng kính",
     frameType: "Oval",
     price: 2100000,
     image: gongkinh1,
@@ -66,6 +63,5 @@ export const products = [
     description: "Gọng kính titanium cao cấp, nhẹ và chắc chắn.",
     rating: 4.7,
     reviews: 45,
-    availableOrderTypes: ["in-stock", "prescription"],
   },
 ];

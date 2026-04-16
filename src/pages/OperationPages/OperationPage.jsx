@@ -11,6 +11,9 @@ import {
   Package,
   ChevronLeft,
   Settings2,
+  Warehouse,
+  ClipboardList,
+  Clock3,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
@@ -27,12 +30,15 @@ const initialOrders = [
     carrier: "GHN",
     trackingCode: "GHN123456789",
     item: {
+      id: 1,
       name: "Classic Black Frame",
       image:
         "https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=400&q=80",
       price: 980000,
+      stock: 12,
     },
     prescription: null,
+    importReceipt: null,
   },
   {
     id: "VC-2024-002",
@@ -44,10 +50,12 @@ const initialOrders = [
     carrier: "",
     trackingCode: "",
     item: {
+      id: 2,
       name: "Modern Square Black",
       image:
         "https://images.unsplash.com/photo-1577803645773-f96470509666?auto=format&fit=crop&w=400&q=80",
       price: 990000,
+      stock: 0,
     },
     prescription: {
       leftSPH: "-2.00",
@@ -55,6 +63,7 @@ const initialOrders = [
       pd: "62",
       lensType: "single_vision",
     },
+    importReceipt: null,
   },
   {
     id: "VC-2024-004",
@@ -66,12 +75,15 @@ const initialOrders = [
     carrier: "GHTK",
     trackingCode: "GHTK987654321",
     item: {
+      id: 3,
       name: "Modern Metal Glasses",
       image:
         "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80",
       price: 900000,
+      stock: 8,
     },
     prescription: null,
+    importReceipt: null,
   },
   {
     id: "VC-2024-005",
@@ -83,10 +95,12 @@ const initialOrders = [
     carrier: "",
     trackingCode: "",
     item: {
+      id: 4,
       name: "Premium Lens Combo",
       image:
         "https://images.unsplash.com/photo-1574258495973-f010dfbb5371?auto=format&fit=crop&w=400&q=80",
       price: 1850000,
+      stock: 6,
     },
     prescription: {
       leftSPH: "-1.50",
@@ -94,6 +108,7 @@ const initialOrders = [
       pd: "64",
       lensType: "blue_cut",
     },
+    importReceipt: null,
   },
   {
     id: "VC-2024-006",
@@ -105,22 +120,36 @@ const initialOrders = [
     carrier: "",
     trackingCode: "",
     item: {
+      id: 5,
       name: "Limited Edition Frame",
       image:
         "https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=400&q=80",
       price: 1280000,
+      stock: 0,
     },
     prescription: null,
+    importReceipt: null,
   },
-];
-
-const ORDER_STEPS = [
-  "Chờ xác nhận",
-  "Đã xác nhận",
-  "Đang xử lý",
-  "Sẵn sàng giao hàng",
-  "Đang giao hàng",
-  "Hoàn thành",
+   {
+    id: "VC-2026-006",
+    customerName: "Nguyễn Văn A",
+    address: "22 Nguyễn Xiển, Q.9, TP.HCM",
+    type: "Pre-order",
+    total: 1000000,
+    status: "Chờ nhập hàng",
+    carrier: "",
+    trackingCode: "",
+    item: {
+      id: 5,
+      name: "Modern Square Black",
+      image:
+        "https://images.unsplash.com/photo-1577803645773-f96470509666?auto=format&fit=crop&w=400&q=80",
+      price: 1000000,
+      stock: 0,
+    },
+    prescription: null,
+    importReceipt: null,
+  },
 ];
 
 const TYPE_FILTERS = [
@@ -154,24 +183,17 @@ function getStatusClass(status) {
       return "border border-cyan-200 bg-cyan-50 text-cyan-600";
     case "Chờ nhập hàng":
       return "border border-orange-200 bg-orange-50 text-orange-700";
-    case "Đã nhập hàng":
+    case "Chờ duyệt":
       return "border border-yellow-200 bg-yellow-50 text-yellow-700";
+    case "Đã nhập hàng":
+      return "border border-lime-200 bg-lime-50 text-lime-700";
     default:
       return "border border-slate-200 bg-slate-50 text-slate-600";
   }
 }
 
-function getTypeClass(type) {
-  switch (type) {
-    case "Gọng + Tròng":
-      return "border border-slate-200 bg-white text-slate-800";
-    case "Pre-order":
-      return "border border-slate-200 bg-white text-slate-800";
-    case "Kính mắt / PK":
-      return "border border-slate-200 bg-white text-slate-800";
-    default:
-      return "border border-slate-200 bg-white text-slate-800";
-  }
+function getTypeClass() {
+  return "border border-slate-200 bg-white text-slate-800";
 }
 
 function getProcessingNextStatus(status, type) {
@@ -192,10 +214,6 @@ function getProcessingNextStatus(status, type) {
 
   if (type === "Pre-order") {
     switch (status) {
-      case "Đã xác nhận":
-        return "Chờ nhập hàng";
-      case "Chờ nhập hàng":
-        return "Đã nhập hàng";
       case "Đã nhập hàng":
         return "Đang đóng gói";
       case "Đang đóng gói":
@@ -224,30 +242,6 @@ function getDeliveryNextStatus(status) {
   }
 }
 
-function getDisplayStepNumber(status) {
-  switch (status) {
-    case "Chờ xác nhận":
-      return 1;
-    case "Đã xác nhận":
-      return 2;
-    case "Đang xử lý":
-    case "Đang mài tròng":
-    case "Đang lắp kính":
-    case "Chờ nhập hàng":
-    case "Đã nhập hàng":
-    case "Đang đóng gói":
-      return 3;
-    case "Sẵn sàng giao hàng":
-      return 4;
-    case "Đang giao hàng":
-      return 5;
-    case "Hoàn thành":
-      return 6;
-    default:
-      return 1;
-  }
-}
-
 function getProcessList(order) {
   if (!order) return [];
 
@@ -267,6 +261,7 @@ function getProcessList(order) {
     return [
       "Đã xác nhận",
       "Chờ nhập hàng",
+      "Chờ duyệt",
       "Đã nhập hàng",
       "Đang đóng gói",
       "Sẵn sàng giao hàng",
@@ -292,10 +287,36 @@ function getOperationTask(order) {
   }
 
   if (order.type === "Pre-order") {
-    return "Operation Staff theo dõi tình trạng hết hàng, nhập hàng về kho, cập nhật đã nhập hàng, kiểm tra sản phẩm, đóng gói và chuẩn bị bàn giao vận chuyển.";
+    return 'Operation Staff chỉ tạo phiếu nhập hàng và chuyển đơn sang trạng thái "Chờ duyệt". Manager sẽ duyệt phiếu trước khi đơn được cập nhật thành "Đã nhập hàng".';
   }
 
   return "Operation Staff đóng gói sản phẩm, kiểm tra hoàn thiện và chuẩn bị bàn giao cho đơn vị vận chuyển.";
+}
+
+function buildInventoryFromOrders(orders) {
+  const map = new Map();
+
+  orders.forEach((order) => {
+    const item = order.item;
+    if (!item) return;
+
+    if (!map.has(item.id)) {
+      map.set(item.id, {
+        id: item.id,
+        name: item.name,
+        type: order.type,
+        image: item.image,
+        stock: item.stock ?? 0,
+      });
+    } else {
+      const current = map.get(item.id);
+      if ((item.stock ?? 0) > current.stock) {
+        current.stock = item.stock;
+      }
+    }
+  });
+
+  return Array.from(map.values());
 }
 
 export default function OperationPage() {
@@ -308,6 +329,12 @@ export default function OperationPage() {
     trackingCode: "",
   });
   const [previewImages, setPreviewImages] = useState([]);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [importForm, setImportForm] = useState({
+    quantity: "",
+    supplier: "",
+    note: "",
+  });
 
   const navigate = useNavigate();
   const { user, isLoggedIn, logout } = useAuth();
@@ -320,7 +347,7 @@ export default function OperationPage() {
 
   useEffect(() => {
     if (!isLoggedIn || !user) {
-      navigate("/login");
+      navigate("/operation");
       return;
     }
 
@@ -347,22 +374,31 @@ export default function OperationPage() {
       "Đang xử lý",
       "Đang mài tròng",
       "Đang lắp kính",
-      "Chờ nhập hàng",
       "Đã nhập hàng",
       "Đang đóng gói",
       "Sẵn sàng giao hàng",
     ].includes(order.status)
   );
 
+  const preOrderOrders = orders.filter((order) => order.type === "Pre-order");
+
   const deliveryOrders = orders.filter((order) =>
     ["Sẵn sàng giao hàng", "Đang giao hàng", "Hoàn thành"].includes(order.status)
   );
 
+  const inventoryItems = buildInventoryFromOrders(orders);
+
   const baseOrders =
-    activeNav === "ORDER_PROCESSING" ? processingOrders : deliveryOrders;
+    activeNav === "ORDER_PROCESSING"
+      ? processingOrders
+      : activeNav === "PRE_ORDER"
+      ? preOrderOrders
+      : deliveryOrders;
 
   const filteredOrders =
-    typeFilter === "Tất cả"
+    activeNav === "INVENTORY"
+      ? inventoryItems
+      : typeFilter === "Tất cả"
       ? baseOrders
       : baseOrders.filter((order) => order.type === typeFilter);
 
@@ -493,6 +529,53 @@ export default function OperationPage() {
     toast.success(`Đã chuyển trạng thái sang "${nextStatus}"`);
   };
 
+  const handleOpenImportModal = () => {
+    if (!selectedOrder) return;
+    setImportForm({
+      quantity: "",
+      supplier: "",
+      note: "",
+    });
+    setIsImportModalOpen(true);
+  };
+
+  const handleCreateImportReceipt = () => {
+    if (!selectedOrder) return;
+
+    if (!String(importForm.quantity).trim() || Number(importForm.quantity) <= 0) {
+      toast.error("Vui lòng nhập số lượng nhập hợp lệ.");
+      return;
+    }
+
+    if (!String(importForm.supplier).trim()) {
+      toast.error("Vui lòng nhập nhà cung cấp.");
+      return;
+    }
+
+    const quantity = Number(importForm.quantity);
+
+    const updatedOrder = {
+      ...selectedOrder,
+      status: "Chờ duyệt",
+      importReceipt: {
+        receiptCode: `IMP-${Date.now()}`,
+        quantity,
+        supplier: importForm.supplier,
+        note: importForm.note,
+        createdAt: new Date().toISOString().split("T")[0],
+        status: "Pending",
+      },
+    };
+
+    setSelectedOrder(updatedOrder);
+    setOrders((prev) =>
+      prev.map((item) => (item.id === updatedOrder.id ? updatedOrder : item))
+    );
+    setIsImportModalOpen(false);
+
+    toast.success("Đã tạo phiếu nhập hàng. Đơn đang chờ Manager duyệt.");
+  };
+
   const isProcessingModal =
     selectedOrder &&
     [
@@ -500,12 +583,16 @@ export default function OperationPage() {
       "Đang xử lý",
       "Đang mài tròng",
       "Đang lắp kính",
-      "Chờ nhập hàng",
       "Đã nhập hàng",
       "Đang đóng gói",
       "Sẵn sàng giao hàng",
     ].includes(selectedOrder.status) &&
     activeNav === "ORDER_PROCESSING";
+
+  const isPreOrderModal =
+    selectedOrder &&
+    selectedOrder.type === "Pre-order" &&
+    activeNav === "PRE_ORDER";
 
   const isDeliveryModal =
     selectedOrder &&
@@ -568,7 +655,7 @@ export default function OperationPage() {
               </p>
               <p>
                 <span className="font-semibold text-slate-700">• Pre-order:</span>{" "}
-                Chờ nhập hàng → Đã nhập hàng → Đóng gói → Sẵn sàng giao hàng → Nhập mã vận đơn
+                Chờ nhập hàng → Tạo phiếu nhập hàng → Chờ duyệt → Manager duyệt → Đã nhập hàng → Đóng gói → Sẵn sàng giao hàng
               </p>
               <p>
                 <span className="font-semibold text-slate-700">• Kính mắt / PK:</span>{" "}
@@ -577,96 +664,160 @@ export default function OperationPage() {
             </div>
           </div>
 
-          <div className="mb-8 flex w-fit flex-wrap gap-3 rounded-[18px] bg-slate-100 p-2">
-            {TYPE_FILTERS.map((filter) => (
-              <button
-                key={filter}
-                type="button"
-                onClick={() => setTypeFilter(filter)}
-                className={`rounded-[14px] px-5 py-3 text-[15px] font-semibold transition ${
-                  typeFilter === filter
-                    ? "bg-white text-slate-900 shadow-sm"
-                    : "text-slate-500 hover:text-slate-800"
-                }`}
-              >
-                {filter}
-                {filter === "Tất cả" ? ` (${baseOrders.length})` : ""}
-              </button>
-            ))}
-          </div>
-
-          <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="min-w-full border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-200 text-left text-[18px] text-slate-500">
-                    <th className="px-6 py-5 font-medium">Mã đơn</th>
-                    <th className="px-6 py-5 font-medium">Khách hàng</th>
-                    <th className="px-6 py-5 font-medium">Loại</th>
-                    <th className="px-6 py-5 font-medium">Tổng tiền</th>
-                    <th className="px-6 py-5 font-medium">Trạng thái</th>
-                    <th className="px-6 py-5 text-right font-medium">Thao tác</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {filteredOrders.map((order) => (
-                    <tr
-                      key={order.id}
-                      className="border-b border-slate-100 text-[17px] last:border-b-0"
-                    >
-                      <td className="px-6 py-6 font-semibold text-slate-900">
-                        {order.id}
-                      </td>
-                      <td className="px-6 py-6 text-slate-900">
-                        {order.customerName}
-                      </td>
-                      <td className="px-6 py-6">
-                        <span
-                          className={`inline-flex whitespace-nowrap rounded-full px-4 py-1.5 text-[15px] font-semibold ${getTypeClass(
-                            order.type
-                          )}`}
-                        >
-                          {order.type}
-                        </span>
-                      </td>
-                      <td className="px-6 py-6 font-semibold text-slate-900">
-                        {formatCurrency(order.total)}
-                      </td>
-                      <td className="px-6 py-6">
-                        <span
-                          className={`inline-flex whitespace-nowrap rounded-full px-4 py-1.5 text-[15px] font-semibold ${getStatusClass(
-                            order.status
-                          )}`}
-                        >
-                          {order.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-6 text-right">
-                        <button
-                          onClick={() => handleOpenOrder(order)}
-                          className="rounded-xl p-2 text-slate-700 transition hover:bg-slate-50"
-                        >
-                          <Eye size={20} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-
-                  {filteredOrders.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="px-6 py-10 text-center text-slate-500"
-                      >
-                        Không có đơn hàng phù hợp
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+          {activeNav !== "INVENTORY" && (
+            <div className="mb-8 flex w-fit flex-wrap gap-3 rounded-[18px] bg-slate-100 p-2">
+              {TYPE_FILTERS.map((filter) => (
+                <button
+                  key={filter}
+                  type="button"
+                  onClick={() => setTypeFilter(filter)}
+                  className={`rounded-[14px] px-5 py-3 text-[15px] font-semibold transition ${
+                    typeFilter === filter
+                      ? "bg-white text-slate-900 shadow-sm"
+                      : "text-slate-500 hover:text-slate-800"
+                  }`}
+                >
+                  {filter}
+                  {filter === "Tất cả" ? ` (${baseOrders.length})` : ""}
+                </button>
+              ))}
             </div>
-          </div>
+          )}
+
+          {activeNav === "INVENTORY" ? (
+            <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm">
+              <div className="border-b border-slate-200 px-6 py-5">
+                <div className="flex items-center gap-3">
+                  <Warehouse size={20} className="text-slate-700" />
+                  <h2 className="text-xl font-semibold text-slate-900">
+                    Kho sản phẩm
+                  </h2>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="min-w-full border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-left text-[18px] text-slate-500">
+                      <th className="px-6 py-5 font-medium">Sản phẩm</th>
+                      <th className="px-6 py-5 font-medium">Loại</th>
+                      <th className="px-6 py-5 font-medium">Tồn kho</th>
+                      <th className="px-6 py-5 font-medium">Trạng thái</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredOrders.map((item) => (
+                      <tr
+                        key={item.id}
+                        className="border-b border-slate-100 text-[17px] last:border-b-0"
+                      >
+                        <td className="px-6 py-6">
+                          <div className="flex items-center gap-4">
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="h-14 w-14 rounded-xl object-cover"
+                            />
+                            <span className="font-semibold text-slate-900">
+                              {item.name}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-6 text-slate-700">{item.type}</td>
+                        <td className="px-6 py-6 font-semibold text-slate-900">
+                          {item.stock}
+                        </td>
+                        <td className="px-6 py-6">
+                          <span
+                            className={`inline-flex rounded-full px-4 py-1.5 text-sm font-semibold ${
+                              item.stock > 0
+                                ? "border border-green-200 bg-green-50 text-green-700"
+                                : "border border-red-200 bg-red-50 text-red-600"
+                            }`}
+                          >
+                            {item.stock > 0 ? "Còn hàng" : "Hết hàng"}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="min-w-full border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-left text-[18px] text-slate-500">
+                      <th className="px-6 py-5 font-medium">Mã đơn</th>
+                      <th className="px-6 py-5 font-medium">Khách hàng</th>
+                      <th className="px-6 py-5 font-medium">Loại</th>
+                      <th className="px-6 py-5 font-medium">Tổng tiền</th>
+                      <th className="px-6 py-5 font-medium">Trạng thái</th>
+                      <th className="px-6 py-5 text-right font-medium">Thao tác</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {filteredOrders.map((order) => (
+                      <tr
+                        key={order.id}
+                        className="border-b border-slate-100 text-[17px] last:border-b-0"
+                      >
+                        <td className="px-6 py-6 font-semibold text-slate-900">
+                          {order.id}
+                        </td>
+                        <td className="px-6 py-6 text-slate-900">
+                          {order.customerName}
+                        </td>
+                        <td className="px-6 py-6">
+                          <span
+                            className={`inline-flex whitespace-nowrap rounded-full px-4 py-1.5 text-[15px] font-semibold ${getTypeClass(
+                              order.type
+                            )}`}
+                          >
+                            {order.type}
+                          </span>
+                        </td>
+                        <td className="px-6 py-6 font-semibold text-slate-900">
+                          {formatCurrency(order.total)}
+                        </td>
+                        <td className="px-6 py-6">
+                          <span
+                            className={`inline-flex whitespace-nowrap rounded-full px-4 py-1.5 text-[15px] font-semibold ${getStatusClass(
+                              order.status
+                            )}`}
+                          >
+                            {order.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-6 text-right">
+                          <button
+                            onClick={() => handleOpenOrder(order)}
+                            className="rounded-xl p-2 text-slate-700 transition hover:bg-slate-50"
+                          >
+                            <Eye size={20} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+
+                    {filteredOrders.length === 0 && (
+                      <tr>
+                        <td
+                          colSpan={6}
+                          className="px-6 py-10 text-center text-slate-500"
+                        >
+                          Không có dữ liệu phù hợp
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </main>
       </div>
 
@@ -687,11 +838,14 @@ export default function OperationPage() {
             </div>
 
             <div className="px-8 py-8">
-              <div className={`mb-8 grid gap-2 ${processList.length >= 7 ? "grid-cols-7" : "grid-cols-6"}`}>
+              <div
+                className={`mb-8 grid gap-2 ${
+                  processList.length >= 7 ? "grid-cols-8" : "grid-cols-6"
+                }`}
+              >
                 {processList.map((step, index) => {
-                  const stepNumber = index;
-                  const completed = stepNumber < currentProcessIndex;
-                  const active = stepNumber === currentProcessIndex;
+                  const completed = index < currentProcessIndex;
+                  const active = index === currentProcessIndex;
                   const isReached = completed || active;
 
                   return (
@@ -702,7 +856,7 @@ export default function OperationPage() {
                       {index < processList.length - 1 && (
                         <div
                           className={`absolute left-[58%] top-5 h-[2px] w-[84%] ${
-                            stepNumber < currentProcessIndex
+                            index < currentProcessIndex
                               ? "bg-teal-500"
                               : "bg-slate-200"
                           }`}
@@ -751,6 +905,23 @@ export default function OperationPage() {
                 <p className="text-lg leading-8 text-slate-600">
                   {getOperationTask(selectedOrder)}
                 </p>
+
+                {selectedOrder.type === "Pre-order" &&
+                  selectedOrder.status === "Chờ nhập hàng" && (
+                    <p className="mt-3 text-sm font-medium text-orange-600">
+                      ⚠ Cần tạo phiếu nhập hàng trước khi chuyển cho Manager duyệt
+                    </p>
+                  )}
+
+                {selectedOrder.type === "Pre-order" &&
+                  selectedOrder.status === "Chờ duyệt" && (
+                    <div className="mt-4 flex items-center gap-2 rounded-2xl border border-yellow-200 bg-yellow-50 px-4 py-3 text-yellow-700">
+                      <Clock3 size={18} />
+                      <span className="font-medium">
+                        Phiếu nhập đang chờ Manager duyệt
+                      </span>
+                    </div>
+                  )}
               </div>
 
               <div className="mb-8 rounded-3xl bg-slate-50 p-4">
@@ -776,6 +947,35 @@ export default function OperationPage() {
                   </p>
                 </div>
               </div>
+
+              {selectedOrder.importReceipt && (
+                <div className="mb-8 rounded-3xl bg-yellow-50 p-6">
+                  <div className="mb-4 flex items-center gap-3">
+                    <ClipboardList size={22} className="text-yellow-700" />
+                    <h3 className="text-2xl font-semibold text-yellow-800">
+                      Phiếu nhập hàng
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 text-lg text-slate-800 md:grid-cols-2">
+                    <p>Mã phiếu: {selectedOrder.importReceipt.receiptCode}</p>
+                    <p>Số lượng: {selectedOrder.importReceipt.quantity}</p>
+                    <p>Nhà cung cấp: {selectedOrder.importReceipt.supplier}</p>
+                    <p>Ngày tạo: {selectedOrder.importReceipt.createdAt}</p>
+                    <p>
+                      Trạng thái phiếu:{" "}
+                      {selectedOrder.importReceipt.status === "Pending"
+                        ? "Chờ duyệt"
+                        : selectedOrder.importReceipt.status}
+                    </p>
+                    {selectedOrder.importReceipt.note && (
+                      <p className="md:col-span-2">
+                        Ghi chú: {selectedOrder.importReceipt.note}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {selectedOrder.prescription && (
                 <div className="mb-8 rounded-3xl bg-teal-50 p-6">
@@ -804,8 +1004,7 @@ export default function OperationPage() {
 
                     <p className="text-lg leading-8 text-slate-600">
                       Ở bước này Operation Staff thực hiện xử lý nội bộ theo đúng loại đơn.
-                      Riêng pre-order sẽ có thêm bước nhập hàng trước khi đóng gói.
-                      Việc chọn đơn vị vận chuyển và nhập mã vận đơn sẽ thực hiện tại tab Giao hàng.
+                      Riêng pre-order chỉ được tiếp tục sau khi Manager duyệt phiếu nhập.
                     </p>
                   </div>
 
@@ -853,6 +1052,43 @@ export default function OperationPage() {
                     )}
                   </div>
                 </>
+              )}
+
+              {isPreOrderModal && (
+                <div className="mb-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                  <div className="mb-4 flex items-center gap-3">
+                    <ClipboardList className="text-slate-700" size={22} />
+                    <h3 className="text-2xl font-semibold text-slate-900">
+                      Nhập hàng Pre-order
+                    </h3>
+                  </div>
+
+                  <p className="mb-4 text-lg leading-8 text-slate-600">
+                    Operation Staff tạo phiếu nhập hàng. Sau đó đơn sẽ chuyển sang Chờ duyệt để Manager xử lý.
+                  </p>
+
+                  {selectedOrder.status === "Chờ nhập hàng" && (
+                    <button
+                      type="button"
+                      onClick={handleOpenImportModal}
+                      className="rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-4 text-lg font-semibold text-white transition hover:opacity-90"
+                    >
+                      Tạo phiếu nhập hàng
+                    </button>
+                  )}
+
+                  {selectedOrder.status === "Chờ duyệt" && (
+                    <div className="rounded-2xl border border-yellow-200 bg-yellow-50 px-4 py-4 text-yellow-700">
+                      Phiếu đã tạo xong. Đơn đang chờ Manager duyệt.
+                    </div>
+                  )}
+
+                  {selectedOrder.status === "Đã nhập hàng" && (
+                    <div className="rounded-2xl border border-lime-200 bg-lime-50 px-4 py-4 text-lime-700">
+                      Đơn đã được Manager duyệt nhập hàng và có thể tiếp tục xử lý.
+                    </div>
+                  )}
+                </div>
               )}
 
               {isDeliveryModal && (
@@ -920,22 +1156,24 @@ export default function OperationPage() {
                   Đóng
                 </button>
 
-                {isProcessingModal && (
-                  <button
-                    type="button"
-                    onClick={handleUpdateProcessingStatus}
-                    disabled={selectedOrder.status === "Sẵn sàng giao hàng"}
-                    className={`rounded-2xl px-6 py-4 text-lg font-semibold text-white transition ${
-                      selectedOrder.status === "Sẵn sàng giao hàng"
-                        ? "cursor-not-allowed bg-slate-300"
-                        : "bg-gradient-to-r from-teal-500 to-blue-500 hover:opacity-90"
-                    }`}
-                  >
-                    {selectedOrder.status === "Sẵn sàng giao hàng"
-                      ? "Đã sẵn sàng giao hàng"
-                      : "Chuyển sang bước tiếp theo"}
-                  </button>
-                )}
+                {isProcessingModal &&
+                  !(selectedOrder.type === "Pre-order" &&
+                    ["Chờ nhập hàng", "Chờ duyệt"].includes(selectedOrder.status)) && (
+                    <button
+                      type="button"
+                      onClick={handleUpdateProcessingStatus}
+                      disabled={selectedOrder.status === "Sẵn sàng giao hàng"}
+                      className={`rounded-2xl px-6 py-4 text-lg font-semibold text-white transition ${
+                        selectedOrder.status === "Sẵn sàng giao hàng"
+                          ? "cursor-not-allowed bg-slate-300"
+                          : "bg-gradient-to-r from-teal-500 to-blue-500 hover:opacity-90"
+                      }`}
+                    >
+                      {selectedOrder.status === "Sẵn sàng giao hàng"
+                        ? "Đã sẵn sàng giao hàng"
+                        : "Chuyển sang bước tiếp theo"}
+                    </button>
+                  )}
 
                 {isDeliveryModal && (
                   <button
@@ -960,6 +1198,110 @@ export default function OperationPage() {
                   </button>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isImportModalOpen && selectedOrder && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-xl rounded-3xl bg-white p-6 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-2xl font-bold text-slate-900">
+                Tạo phiếu nhập hàng
+              </h3>
+              <button
+                onClick={() => setIsImportModalOpen(false)}
+                className="text-slate-400 transition hover:text-slate-700"
+              >
+                <X size={22} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-900">
+                  Sản phẩm
+                </label>
+                <input
+                  type="text"
+                  value={selectedOrder.item?.name || ""}
+                  disabled
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-600 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-900">
+                  Số lượng nhập
+                </label>
+                <input
+                  type="number"
+                  value={importForm.quantity}
+                  onChange={(e) =>
+                    setImportForm((prev) => ({
+                      ...prev,
+                      quantity: e.target.value,
+                    }))
+                  }
+                  placeholder="Nhập số lượng"
+                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-900">
+                  Nhà cung cấp
+                </label>
+                <input
+                  type="text"
+                  value={importForm.supplier}
+                  onChange={(e) =>
+                    setImportForm((prev) => ({
+                      ...prev,
+                      supplier: e.target.value,
+                    }))
+                  }
+                  placeholder="Nhập tên nhà cung cấp"
+                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-900">
+                  Ghi chú
+                </label>
+                <textarea
+                  value={importForm.note}
+                  onChange={(e) =>
+                    setImportForm((prev) => ({
+                      ...prev,
+                      note: e.target.value,
+                    }))
+                  }
+                  rows={4}
+                  placeholder="Nhập ghi chú phiếu nhập hàng"
+                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex items-center gap-4">
+              <button
+                type="button"
+                onClick={() => setIsImportModalOpen(false)}
+                className="rounded-2xl border border-slate-200 px-5 py-3 font-semibold text-slate-700 transition hover:bg-slate-50"
+              >
+                Hủy
+              </button>
+
+              <button
+                type="button"
+                onClick={handleCreateImportReceipt}
+                className="rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-3 font-semibold text-white transition hover:opacity-90"
+              >
+                Xác nhận tạo phiếu nhập
+              </button>
             </div>
           </div>
         </div>

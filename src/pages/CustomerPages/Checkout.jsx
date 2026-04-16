@@ -4,6 +4,32 @@ import toast from "react-hot-toast";
 import { useCart } from "../../context/CartContext";
 import { createNewOrder } from "../../utils/orderStorage";
 
+function getOrderTypeLabel(orderType) {
+  switch (orderType) {
+    case "in-stock":
+      return "Mua thường";
+    case "pre-order":
+      return "Đặt trước";
+    case "prescription":
+      return "Kính theo toa";
+    default:
+      return "Không xác định";
+  }
+}
+
+function getOrderTypeClass(orderType) {
+  switch (orderType) {
+    case "pre-order":
+      return "bg-amber-50 text-amber-700 border border-amber-200";
+    case "prescription":
+      return "bg-blue-50 text-blue-700 border border-blue-200";
+    case "in-stock":
+      return "bg-green-50 text-green-700 border border-green-200";
+    default:
+      return "bg-slate-50 text-slate-700 border border-slate-200";
+  }
+}
+
 function Checkout() {
   const navigate = useNavigate();
   const { cartItems, totalPrice, clearCart } = useCart();
@@ -25,6 +51,11 @@ function Checkout() {
   }, [totalPrice, cartItems.length]);
 
   const finalTotal = totalPrice + shippingFee;
+
+  const hasPreOrder = cartItems.some((item) => item.orderType === "pre-order");
+  const hasPrescription = cartItems.some(
+    (item) => item.orderType === "prescription"
+  );
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({
@@ -58,7 +89,15 @@ function Checkout() {
   const handlePlaceOrder = () => {
     if (!validateForm()) return;
 
-    createNewOrder(cartItems, finalTotal, formData);
+    const orderCustomerInfo = {
+      fullName: formData.fullName,
+      phone: formData.phone,
+      email: formData.email,
+      address: `${formData.address}, ${formData.ward}, ${formData.district}, ${formData.city}`,
+      paymentMethod: formData.paymentMethod,
+    };
+
+    createNewOrder(cartItems, finalTotal, orderCustomerInfo);
     clearCart();
 
     toast.success("Đặt hàng thành công!");
@@ -69,6 +108,7 @@ function Checkout() {
     return (
       <section className="mx-auto max-w-7xl px-6 py-10">
         <h1 className="text-3xl font-bold text-slate-900">Thanh toán</h1>
+
         <div className="mt-6 rounded-3xl bg-white p-10 shadow-sm">
           <h2 className="text-2xl font-bold text-slate-900">
             Giỏ hàng của bạn đang trống
@@ -258,6 +298,14 @@ function Checkout() {
                 <div className="flex-1">
                   <p className="font-medium text-slate-900">{item.name}</p>
                   <p className="text-sm text-slate-500">x{item.quantity}</p>
+
+                  <span
+                    className={`mt-1 inline-flex rounded-full px-2 py-1 text-xs font-medium ${getOrderTypeClass(
+                      item.orderType
+                    )}`}
+                  >
+                    {getOrderTypeLabel(item.orderType)}
+                  </span>
                 </div>
 
                 <p className="font-medium text-slate-900">
@@ -266,6 +314,18 @@ function Checkout() {
               </div>
             ))}
           </div>
+
+          {hasPreOrder && (
+            <p className="mt-4 text-sm font-medium text-amber-600">
+              ⚠️ Có sản phẩm đặt trước - thời gian giao hàng có thể lâu hơn
+            </p>
+          )}
+
+          {hasPrescription && (
+            <p className="mt-2 text-sm font-medium text-blue-600">
+              👓 Đơn hàng có sản phẩm cần gia công theo toa kính
+            </p>
+          )}
 
           <div className="mt-6 space-y-3 border-t border-slate-200 pt-4 text-sm text-slate-600">
             <div className="flex items-center justify-between">

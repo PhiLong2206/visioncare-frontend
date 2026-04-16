@@ -1,4 +1,9 @@
-import { PackageCheck, Truck } from "lucide-react";
+import {
+  PackageCheck,
+  Truck,
+  ClipboardList,
+  Warehouse,
+} from "lucide-react";
 
 const navItems = [
   {
@@ -7,23 +12,34 @@ const navItems = [
     icon: PackageCheck,
   },
   {
+    key: "PRE_ORDER",
+    label: "Nhập hàng pre-order",
+    icon: ClipboardList,
+  },
+  {
     key: "DELIVERY",
     label: "Giao hàng",
     icon: Truck,
   },
+  {
+    key: "INVENTORY",
+    label: "Kho",
+    icon: Warehouse,
+  },
 ];
-
 
 export default function OperationSidebar({ activeNav, setActiveNav, user }) {
   return (
-    <aside className="flex h-full w-[230px] flex-col border-r border-slate-800 bg-[#0b1724] text-white">
-      <div className="border-b border-slate-800 px-5 py-4">
+    <aside className="flex h-full w-[250px] flex-col border-r border-slate-800 bg-[#0b1724] text-white">
+      <div className="border-b border-slate-800 px-5 py-5">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-cyan-500 text-sm font-bold">
             {user?.fullName?.charAt(0)?.toUpperCase() || "O"}
           </div>
+
           <div>
             <p className="text-lg font-semibold">Operations</p>
+            <p className="text-xs text-slate-400">Quản lý vận hành</p>
           </div>
         </div>
       </div>
