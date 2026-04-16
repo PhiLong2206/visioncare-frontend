@@ -1,20 +1,28 @@
 import React from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { 
-  User, Mail, Phone, MapPin, ShoppingCart, 
-  MessageSquare, Send, RotateCcw, Plus, 
-  ChevronRight, CheckCircle2, ShieldAlert, PauseCircle
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import {
+  User, Mail, Phone, MapPin, ShoppingCart,
+  MessageSquare, Send, RotateCcw, Plus,
+  ChevronRight,
+  ChevronLeft
 } from 'lucide-react';
 
 const OrderDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate()
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 text-slate-800">
       {/* Header */}
+
       <header className="flex justify-between items-center mb-6">
         <div>
           <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
+            <button
+            onClick={() => navigate("/staff")}
+            >
+              <ChevronLeft />
+            </button>
             <Link to="/staff">ORDERS</Link> <ChevronRight size={14} /> <span>#{id || 'VC-88291'}</span>
           </div>
           <h1 className="text-3xl font-bold text-slate-900">Xem lại chỉ số</h1>
@@ -29,7 +37,7 @@ const OrderDetail = () => {
       <div className="grid grid-cols-12 gap-6">
         {/* Left Column: Patient & Order Info */}
         <div className="col-span-12 lg:col-span-3 space-y-6">
-          
+
           {/* Patient Card */}
           <section className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
             <div className="flex justify-between items-start mb-4">
@@ -39,7 +47,7 @@ const OrderDetail = () => {
             </div>
             <h2 className="text-xl font-bold mb-1">Julianne Sterling</h2>
             <p className="text-sm text-slate-500 mb-6">Mã Bệnh Nhân: #PS-4492-B</p>
-            
+
             <div className="space-y-4">
               <div className="flex items-center gap-3 text-sm">
                 <Mail size={16} className="text-slate-400" />
@@ -76,7 +84,7 @@ const OrderDetail = () => {
               </div>
               <div className="pt-4 mt-4 border-t border-slate-200 flex justify-between items-center">
                 <span className="font-bold">Tổng</span>
-                <span className="text-xl font-bold text-teal-700">$429.00</span>
+                <span className="text-xl font-bold text-teal-700">429.000 VND</span>
               </div>
             </div>
           </section>
@@ -157,8 +165,8 @@ const OrderDetail = () => {
               </div>
               <div className="col-span-6">
                 <h4 className="text-sm font-bold mb-4">Quan sát lâm sàng</h4>
-                <textarea 
-                  placeholder="Nhập ghi chú lâm sàng cho nhóm vận hành..." 
+                <textarea
+                  placeholder="Nhập ghi chú lâm sàng cho nhóm vận hành..."
                   className="w-full h-24 bg-slate-100 rounded-xl p-4 text-sm outline-none focus:ring-1 focus:ring-teal-500 resize-none border-none"
                 ></textarea>
               </div>

@@ -5,6 +5,7 @@ import Dashboard from "./Dashboard";
 import Inventory from "./Inventory";
 import Policies from "./Policies";
 import Team from "./Team";
+import ClaimsRefunds from "./ClaimNRefund";
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function StaffPage() {
@@ -41,6 +42,8 @@ export default function StaffPage() {
                     <Inventory />
                 ) : activeNav === "PRICING" ? (
                     <h1>PRICING</h1>
+                ) : activeNav === "CLAIMS/REFUNDS" ? (
+                    <ClaimsRefunds />
                 ) : activeNav === "POLICIES" ? (
                     <Policies />
                 ) : activeNav === "TEAM" ? (

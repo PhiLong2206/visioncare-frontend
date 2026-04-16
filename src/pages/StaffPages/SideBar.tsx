@@ -1,9 +1,8 @@
 import { Eye, Clipboard, Clock, CreditCard, Settings } from "lucide-react";
 
 const navItems = [
-    { label: "ORDERS", icon: <Clipboard /> },
-    { label: "CLAIMS/REFUNDS", icon: <CreditCard /> },
-    { label: "SETTINGS", icon: <Settings /> },
+    { label: "ĐƠN HÀNG", icon: <Clipboard /> },
+    // { label: "CLAIMS/REFUNDS", icon: <CreditCard /> },
 ];
 
 type SideBarProps = {

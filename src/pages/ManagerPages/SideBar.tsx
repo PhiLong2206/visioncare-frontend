@@ -1,11 +1,12 @@
-import { Eye, LayoutDashboard, Package, Banknote, BookOpenText, Users } from "lucide-react";
+import { Eye, LayoutDashboard, Package, Banknote, BookOpenText, Users, CreditCard } from "lucide-react";
 
 const navItems = [
-    { label: "DASHBOARD", icon: <LayoutDashboard /> },
-    { label: "INVENTORY", icon: <Package /> },
-    { label: "PRICING", icon: <Banknote /> },
-    { label: "POLICIES", icon: <BookOpenText /> },
-    { label: "TEAM", icon: <Users /> },
+    { text: "THỐNG KÊ", label: "DASHBOARD", icon: <LayoutDashboard /> },
+    { text: "KHO", label: "INVENTORY", icon: <Package /> },
+    { text: "GIÁ CẢ", label: "PRICING", icon: <Banknote /> },
+    { text: "HOÀN/TRẢ", label: "CLAIMS/REFUNDS", icon: <CreditCard /> },
+    // { label: "POLICIES", icon: <BookOpenText /> },
+    // { label: "TEAM", icon: <Users /> },
 ];
 
 type SideBarProps = {
@@ -13,7 +14,7 @@ type SideBarProps = {
     setActiveNav: ((label: string) => void)
 }
 
-export default function SideBar({activeNav, setActiveNav}: SideBarProps) {
+export default function SideBar({ activeNav, setActiveNav }: SideBarProps) {
     return (
         <aside className="w-56 bg-white border-r border-gray-200 flex flex-col shrink-0">
             {/* Logo */}
@@ -34,7 +35,7 @@ export default function SideBar({activeNav, setActiveNav}: SideBarProps) {
 
             {/* Nav */}
             <nav className="flex-1 px-3 py-4 space-y-0.5">
-                {navItems.map(({ label, icon }) => (
+                {navItems.map(({ text, label, icon }) => (
                     <button
                         key={label}
                         onClick={() => setActiveNav(label)}
@@ -44,7 +45,7 @@ export default function SideBar({activeNav, setActiveNav}: SideBarProps) {
                             }`}
                     >
                         <span className={activeNav === label ? "text-teal-500" : ""}>{icon}</span>
-                        {label}
+                        {text}
                     </button>
                 ))}
             </nav>

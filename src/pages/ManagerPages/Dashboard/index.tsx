@@ -24,26 +24,19 @@ const maxVal = Math.max(...monthlyData.flatMap((d) => [d.current, d.prev]));
 
 const salesBreakdown = [
   {
-    label: "Frames",
+    label: "Gọng Kính",
     value: 124500,
     pct: 65,
     color: "bg-teal-600",
     icon: Glasses,
   },
   {
-    label: "Lenses",
+    label: "Tròng",
     value: 82300,
     pct: 42,
     color: "bg-teal-400",
     icon: Eye,
-  },
-  {
-    label: "Contact Lenses",
-    value: 45192,
-    pct: 28,
-    color: "bg-teal-300",
-    icon: PackageOpen,
-  },
+  }
 ];
 
 // --- Metric Card ---
@@ -84,11 +77,11 @@ function MetricCard({ icon: Icon, label, value, change, up }: MetricCardProps) {
 }
 
 // --- Bar Chart ---
-type Period = "Yearly" | "Quarterly";
+type Period = "Năm" | "Quý";
 
 function BarChart({ period }: { period: Period }) {
   const data =
-    period === "Quarterly" ? monthlyData.slice(3) : monthlyData;
+    period === "Quý" ? monthlyData.slice(3) : monthlyData;
 
   return (
     <div className="flex items-end gap-3 h-44 mt-4">
@@ -135,7 +128,7 @@ function SalesRow({
           <span className="text-sm font-semibold text-slate-700">{label}</span>
         </div>
         <span className="text-sm font-bold text-slate-800">
-          ${value.toLocaleString()}
+          {value.toLocaleString()} VND
         </span>
       </div>
       <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
@@ -144,14 +137,14 @@ function SalesRow({
           style={{ width: `${pct}%` }}
         />
       </div>
-      <p className="text-[11px] text-slate-400">{pct}% of Total Revenue</p>
+      <p className="text-[11px] text-slate-400">{pct}% tổng doanh thu</p>
     </div>
   );
 }
 
 // --- Main Dashboard ---
 export default function Dashboard() {
-  const [period, setPeriod] = useState<Period>("Yearly");
+  const [period, setPeriod] = useState<Period>("Năm");
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 font-sans">
@@ -160,12 +153,12 @@ export default function Dashboard() {
         {/* Header */}
         <div>
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
-            Manager Revenue Dashboard
+            Doanh Thu
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Real-time fiscal performance and clinical operational health.{" "}
+            Hiệu quả tài chính và sức khỏe hoạt động lâm sàng theo thời gian thực.{" "}
             <span className="text-slate-500">
-              Expert curation of pharmacy and optical sales data.
+              Phân tích dữ liệu bán hàng dược phẩm và kính mắt một cách chuyên nghiệp.
             </span>
           </p>
         </div>
@@ -174,30 +167,16 @@ export default function Dashboard() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <MetricCard
             icon={DollarSign}
-            label="Total Revenue"
-            value="$284,392.00"
+            label="Tổng doanh thu"
+            value="289.000 VND"
             change="12.4%"
             up={true}
           />
           <MetricCard
             icon={ShoppingBag}
-            label="Avg Order Value"
-            value="$412.50"
+            label="Giá trị trung bình"
+            value="412.50 VND"
             change="5.2%"
-            up={true}
-          />
-          <MetricCard
-            icon={Eye}
-            label="Conversion Rate"
-            value="34.2%"
-            change="1.8%"
-            up={false}
-          />
-          <MetricCard
-            icon={UserPlus}
-            label="New Patients"
-            value="1,204"
-            change="22%"
             up={true}
           />
         </div>
@@ -210,14 +189,14 @@ export default function Dashboard() {
             <div className="flex items-start justify-between">
               <div>
                 <h2 className="text-base font-bold text-slate-800">
-                  Monthly Revenue Trends
+                  Xu hướng doanh thu hàng tháng
                 </h2>
                 <p className="text-[11px] text-slate-400 mt-0.5">
-                  Comparative performance (Current vs. Prev Year)
+                  So sánh hiệu quả hoạt động (Năm hiện tại so với năm trước)
                 </p>
               </div>
               <div className="flex gap-1 bg-slate-100 rounded-lg p-0.5">
-                {(["Yearly", "Quarterly"] as Period[]).map((p) => (
+                {(["Năm", "Quý"] as Period[]).map((p) => (
                   <button
                     key={p}
                     onClick={() => setPeriod(p)}
@@ -238,11 +217,11 @@ export default function Dashboard() {
             <div className="flex items-center gap-4 mt-3">
               <div className="flex items-center gap-1.5">
                 <div className="w-3 h-3 rounded-sm bg-teal-600" />
-                <span className="text-[11px] text-slate-500">Current Year</span>
+                <span className="text-[11px] text-slate-500">Năm Nay</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <div className="w-3 h-3 rounded-sm bg-slate-200" />
-                <span className="text-[11px] text-slate-500">Prev Year</span>
+                <span className="text-[11px] text-slate-500">Năm Ngoái</span>
               </div>
             </div>
           </div>
@@ -250,7 +229,7 @@ export default function Dashboard() {
           {/* Sales Breakdown */}
           <div className="md:col-span-2 bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
             <h2 className="text-base font-bold text-slate-800 mb-4">
-              Sales Breakdown
+              Phân tích doanh số bán hàng
             </h2>
             <div className="flex flex-col gap-5">
               {salesBreakdown.map((item) => (

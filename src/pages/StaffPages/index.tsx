@@ -2,12 +2,12 @@ import { useState, ReactElement } from "react";
 import SideBar from "./SideBar";
 import OrdersManagement from "./OrdersManagement";
 import { Bell } from "lucide-react";
-import ClaimsRefunds from "./ClaimNRefund";
+// import ClaimsRefunds from "./ClaimNRefund";
 import Settings from "./Settings";
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function StaffPage() {
-    const [activeNav, setActiveNav] = useState("ORDERS");
+    const [activeNav, setActiveNav] = useState("ĐƠN HÀNG");
 
     return (
         <div className="flex h-screen bg-gray-50 font-sans text-gray-800 overflow-hidden">
@@ -34,12 +34,8 @@ export default function StaffPage() {
                     </div>
                 </header>
 
-                {activeNav === "ORDERS" ? (
+                {activeNav === "ĐƠN HÀNG" ? (
                     <OrdersManagement />
-                ) : activeNav === "CLAIMS/REFUNDS" ? (
-                    <ClaimsRefunds />
-                ) : activeNav === "SETTINGS" ? (
-                    <Settings />
                 ) : null}
                 
             </div>

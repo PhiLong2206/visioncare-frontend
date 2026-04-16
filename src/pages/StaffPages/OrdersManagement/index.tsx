@@ -1,60 +1,7 @@
 import { useState, ReactElement, useMemo, useEffect } from "react";
 import { CircleCheck, CircleAlert, CircleMinus, ChevronLeft, ChevronRight, Bell } from 'lucide-react'
 import { useNavigate } from "react-router-dom";
-import { getAllOrders, Order, ORDER_TYPE_STYLES, ORDERS_PER_PAGE, PrescriptionStatus, STATUS_STYLES } from "../../../api/staffAPI/orderAPI";
-
-// type OrderType = "NORMAL" | "ON SITE" | "PRE-ORDER";
-// type OrderStatus = "SENT TO LAB" | "AWAITING VERIFICATION" | "PROCESSING" | "CANCELLED";
-// type PrescriptionStatus = "Verified" | "Manual Check Required" | "No Rx Attached";
-
-// interface Order {
-//   id: string;
-//   customer: string;
-//   email: string;
-//   date: string;
-//   orderType: OrderType;
-//   prescription: PrescriptionStatus;
-//   status: OrderStatus;
-// }
-
-// // 20 sample orders so pagination across 4 pages is visible
-// const BASE_ORDERS: Order[] = [
-//   { id: "ORD-8821", customer: "Eleanor Shellstrop", email: "e.shell@example.com", date: "Oct 24, 2023", orderType: "NORMAL", prescription: "Verified", status: "SENT TO LAB" },
-//   { id: "ORD-8822", customer: "Chidi Anagonye", email: "chidi.a@university.edu", date: "Oct 24, 2023", orderType: "ON SITE", prescription: "Manual Check Required", status: "AWAITING VERIFICATION" },
-//   { id: "ORD-8823", customer: "Tahani Al-Jamil", email: "tahani@social.uk", date: "Oct 23, 2023", orderType: "PRE-ORDER", prescription: "Verified", status: "PROCESSING" },
-//   { id: "ORD-8824", customer: "Jason Mendoza", email: "bortles@florida.com", date: "Oct 23, 2023", orderType: "NORMAL", prescription: "No Rx Attached", status: "CANCELLED" },
-//   { id: "ORD-8825", customer: "Michael Realman", email: "michael@good.place", date: "Oct 22, 2023", orderType: "NORMAL", prescription: "Verified", status: "SENT TO LAB" },
-//   { id: "ORD-8826", customer: "Janet Notarobot", email: "janet@void.space", date: "Oct 22, 2023", orderType: "ON SITE", prescription: "Verified", status: "PROCESSING" },
-//   { id: "ORD-8827", customer: "Trevor Maplewood", email: "trevor@bad.place", date: "Oct 21, 2023", orderType: "PRE-ORDER", prescription: "Manual Check Required", status: "AWAITING VERIFICATION" },
-//   { id: "ORD-8828", customer: "Simone Garnett", email: "simone@sydney.au", date: "Oct 21, 2023", orderType: "NORMAL", prescription: "Verified", status: "SENT TO LAB" },
-//   { id: "ORD-8829", customer: "Pillboi Johnson", email: "pillboi@jacksonville.com", date: "Oct 20, 2023", orderType: "NORMAL", prescription: "No Rx Attached", status: "CANCELLED" },
-//   { id: "ORD-8830", customer: "Kamilah Al-Jamil", email: "kamilah@art.world", date: "Oct 20, 2023", orderType: "ON SITE", prescription: "Verified", status: "PROCESSING" },
-//   { id: "ORD-8831", customer: "Doug Forcett", email: "doug@calgary.ca", date: "Oct 19, 2023", orderType: "NORMAL", prescription: "Verified", status: "SENT TO LAB" },
-//   { id: "ORD-8832", customer: "Mindy St. Claire", email: "mindy@medium.place", date: "Oct 19, 2023", orderType: "PRE-ORDER", prescription: "Manual Check Required", status: "AWAITING VERIFICATION" },
-//   { id: "ORD-8833", customer: "Glenn Furlough", email: "glenn@accounting.com", date: "Oct 18, 2023", orderType: "NORMAL", prescription: "Verified", status: "PROCESSING" },
-//   { id: "ORD-8834", customer: "Vicky Lightwood", email: "vicky@bad.place", date: "Oct 18, 2023", orderType: "ON SITE", prescription: "No Rx Attached", status: "CANCELLED" },
-//   { id: "ORD-8835", customer: "Bambadjan Bamba", email: "bambadjan@good.place", date: "Oct 17, 2023", orderType: "NORMAL", prescription: "Verified", status: "SENT TO LAB" },
-//   { id: "ORD-8836", customer: "Chris Baker", email: "chris@records.com", date: "Oct 17, 2023", orderType: "PRE-ORDER", prescription: "Verified", status: "PROCESSING" },
-//   { id: "ORD-8837", customer: "Linda Nguyen", email: "linda@clinic.vn", date: "Oct 16, 2023", orderType: "NORMAL", prescription: "Manual Check Required", status: "AWAITING VERIFICATION" },
-//   { id: "ORD-8838", customer: "Sam Torres", email: "sam@optometry.com", date: "Oct 16, 2023", orderType: "ON SITE", prescription: "Verified", status: "SENT TO LAB" },
-//   { id: "ORD-8839", customer: "Priya Mehta", email: "priya@vision.in", date: "Oct 15, 2023", orderType: "NORMAL", prescription: "Verified", status: "PROCESSING" },
-//   { id: "ORD-8840", customer: "Omar Shaikh", email: "omar@eyecare.ae", date: "Oct 15, 2023", orderType: "PRE-ORDER", prescription: "No Rx Attached", status: "CANCELLED" },
-// ];
-
-// const ORDERS_PER_PAGE = 5;
-
-// const ORDER_TYPE_STYLES: Record<OrderType, string> = {
-//   NORMAL: "bg-blue-100 text-blue-700",
-//   "ON SITE": "bg-green-100 text-green-700",
-//   "PRE-ORDER": "bg-purple-100 text-purple-700",
-// };
-
-// const STATUS_STYLES: Record<OrderStatus, string> = {
-//   "SENT TO LAB": "bg-teal-100 text-teal-700",
-//   "AWAITING VERIFICATION": "bg-orange-100 text-orange-700",
-//   PROCESSING: "bg-gray-200 text-gray-600",
-//   CANCELLED: "bg-red-100 text-red-600",
-// };
+import { getAllOrders, Order, ORDER_TYPE_STYLES, ORDERS_PER_PAGE, PrescriptionStatus, STATUS_STYLES, TYPEITEMS, transStatus } from "../../../api/staffAPI/orderAPI";
 
 const PRESCRIPTION_ICON: Record<PrescriptionStatus, ReactElement> = {
   Verified: (
@@ -162,8 +109,7 @@ export default function OrdersManagement() {
               className="text-sm border border-gray-200 rounded-lg px-3 py-2 pr-8 bg-white focus:outline-none focus:ring-1 focus:ring-teal-400 appearance-none cursor-pointer min-w-32"
             >
               <option>All</option>
-              <option>NORMAL</option>
-              <option>ON SITE</option>
+              <option>ORDER</option>
               <option>PRE-ORDER</option>
             </select>
           </div>
@@ -174,11 +120,13 @@ export default function OrdersManagement() {
               onChange={(e) => handleFilterChange("status", e.target.value)}
               className="text-sm border border-gray-200 rounded-lg px-3 py-2 pr-8 bg-white focus:outline-none focus:ring-1 focus:ring-teal-400 appearance-none cursor-pointer min-w-36"
             >
-              <option>All</option>
-              <option>SENT TO LAB</option>
-              <option>AWAITING VERIFICATION</option>
-              <option>PROCESSING</option>
-              <option>CANCELLED</option>
+              <option value="All">All</option>
+
+              {TYPEITEMS.map(({ name, id }) => (
+                <option key={id} value={id}>
+                  {name}
+                </option>
+              ))}
             </select>
           </div>
           <div>
@@ -197,81 +145,81 @@ export default function OrdersManagement() {
         </div>
       </div>
 
-          {/* Table */}
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  {["ORDER ID", "CUSTOMER", "DATE", "ORDER TYPE", "PRESCRIPTION", "STATUS", "ACTIONS"].map((h) => (
-                    <th key={h} className="text-left text-xs font-semibold text-gray-400 tracking-widest px-5 py-3.5">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {paginated.map((order, i) => (
-                  <tr
-                    key={order.id}
-                    className={`border-b border-gray-50 hover:bg-gray-50 transition-colors ${i === filtered.length - 1 ? "border-b-0" : ""}`}
-                  >
-                    {/* ID */}
-                    <td className="px-5 py-4">
-                      <button className="text-teal-500 font-semibold text-sm hover:text-teal-700 hover:underline">
-                        #{order.id}
-                      </button>
-                    </td>
+      {/* Table */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-gray-100">
+              {["Mã Đơn", "Khách Hàng", "Ngày", "Loại", "Thông Số", "Trạng Thái", "Hành Động"].map((h) => (
+                <th key={h} className="text-left text-xs font-semibold text-gray-400 tracking-widest px-5 py-3.5">
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {paginated.map((order, i) => (
+              <tr
+                key={order.id}
+                className={`border-b border-gray-50 hover:bg-gray-50 transition-colors ${i === filtered.length - 1 ? "border-b-0" : ""}`}
+              >
+                {/* ID */}
+                <td className="px-5 py-4">
+                  <button className="text-teal-500 font-semibold text-sm hover:text-teal-700 hover:underline">
+                    #{order.id}
+                  </button>
+                </td>
 
-                    {/* Customer */}
-                    <td className="px-5 py-4">
-                      <p className="font-semibold text-gray-800 text-sm">{order.customer}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{order.email}</p>
-                    </td>
+                {/* Customer */}
+                <td className="px-5 py-4">
+                  <p className="font-semibold text-gray-800 text-sm">{order.customer}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{order.email}</p>
+                </td>
 
-                    {/* Date */}
-                    <td className="px-5 py-4 text-sm text-gray-500">{order.date}</td>
+                {/* Date */}
+                <td className="px-5 py-4 text-sm text-gray-500">{order.date}</td>
 
-                    {/* Order Type */}
-                    <td className="px-5 py-4">
-                      <span className={`inline-block text-xs font-bold px-2.5 py-1 rounded-md tracking-wide ${ORDER_TYPE_STYLES[order.orderType]}`}>
-                        {order.orderType}
-                      </span>
-                    </td>
+                {/* Order Type */}
+                <td className="px-5 py-4">
+                  <span className={`inline-block text-xs font-bold px-2.5 py-1 rounded-md tracking-wide ${ORDER_TYPE_STYLES[order.orderType]}`}>
+                    {order.orderType}
+                  </span>
+                </td>
 
-                    {/* Prescription */}
-                    <td className="px-5 py-4">{PRESCRIPTION_ICON[order.prescription]}</td>
+                {/* Prescription */}
+                <td className="px-5 py-4">{PRESCRIPTION_ICON[order.prescription]}</td>
 
-                    {/* Status */}
-                    <td className="px-5 py-4">
-                      <span className={`inline-block text-xs font-bold px-2.5 py-1 rounded-md tracking-wide ${STATUS_STYLES[order.status]}`}>
-                        {order.status}
-                      </span>
-                    </td>
+                {/* Status */}
+                <td className="px-5 py-4">
+                  <span className={`inline-block text-xs font-bold px-2.5 py-1 rounded-md tracking-wide ${STATUS_STYLES[order.status]}`}>
+                    {transStatus(order)}
+                  </span>
+                </td>
 
-                    {/* Actions */}
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-2">
-                        <button 
-                        className="text-gray-400 hover:text-teal-500 transition-colors" 
-                        title="View"
-                        onClick={() => navigate(`/staff/orders/${order.id}`)}
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                        </button>
-                        <button className="text-gray-400 hover:text-red-500 transition-colors" title="Delete">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                {/* Actions */}
+                <td className="px-5 py-4">
+                  <div className="flex items-center gap-2">
+                    <button
+                      className="text-gray-400 hover:text-teal-500 transition-colors"
+                      title="View"
+                      onClick={() => navigate(`/staff/orders/${order.id}`)}
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    </button>
+                    <button className="text-gray-400 hover:text-red-500 transition-colors" title="Delete">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
         {/* Pagination */}
         <div className="flex items-center justify-between px-5 py-4 border-t border-gray-100">
