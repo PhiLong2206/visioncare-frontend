@@ -346,16 +346,15 @@ export default function OperationPage() {
   }, [user]);
 
   useEffect(() => {
-    if (!isLoggedIn || !user) {
-      navigate("/operation");
-      return;
-    }
+  if (!isLoggedIn || !user) {
+    navigate("/login");
+    return;
+  }
 
-    if (!isOperationUser) {
-      navigate("/");
-    }
-  }, [isLoggedIn, user, isOperationUser, navigate]);
-
+  if (!isOperationUser) {
+    navigate("/");
+  }
+}, [isLoggedIn, user, isOperationUser, navigate]);
   useEffect(() => {
     return () => {
       previewImages.forEach((img) => {
