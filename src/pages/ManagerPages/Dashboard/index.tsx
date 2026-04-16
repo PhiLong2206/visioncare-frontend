@@ -1,244 +1,185 @@
-import { useState } from "react";
+import React from 'react';
+import { 
+  ShoppingCart, 
+  DollarSign, 
+  Box, 
+  Users, 
+  RotateCcw 
+} from 'lucide-react';
 import {
-  DollarSign,
-  ShoppingBag,
-  TrendingDown,
-  UserPlus,
-  Glasses,
-  Eye,
-  PackageOpen,
-  TrendingUp,
-} from "lucide-react";
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from 'recharts';
 
-// --- Data ---
-const monthlyData = [
-  { month: "JAN", current: 38000, prev: 29000 },
-  { month: "FEB", current: 52000, prev: 38000 },
-  { month: "MAR", current: 45000, prev: 40000 },
-  { month: "APR", current: 60000, prev: 44000 },
-  { month: "MAY", current: 72000, prev: 52000 },
-  { month: "JUN", current: 30000, prev: 26000 },
+// --- Mock Data ---
+const barData = [
+  { name: 'T1', revenue: 32000000 },
+  { name: 'T2', revenue: 28000000 },
+  { name: 'T3', revenue: 45000000 },
+  { name: 'T4', revenue: 38000000 },
+  { name: 'T5', revenue: 52000000 },
+  { name: 'T6', revenue: 61000000 },
+  { name: 'T7', revenue: 48000000 },
+  { name: 'T8', revenue: 55000000 },
+  { name: 'T9', revenue: 42000000 },
+  { name: 'T10', revenue: 39000000 },
+  { name: 'T11', revenue: 47000000 },
+  { name: 'T12', revenue: 58000000 },
 ];
 
-const maxVal = Math.max(...monthlyData.flatMap((d) => [d.current, d.prev]));
-
-const salesBreakdown = [
-  {
-    label: "Gọng Kính",
-    value: 124500,
-    pct: 65,
-    color: "bg-teal-600",
-    icon: Glasses,
-  },
-  {
-    label: "Tròng",
-    value: 82300,
-    pct: 42,
-    color: "bg-teal-400",
-    icon: Eye,
-  }
+const pieData = [
+  { name: 'Kính mát / Phụ kiện', value: 65, color: '#f59e0b' }, // Orange-500
+  { name: 'Tròng (Prescription)', value: 58, color: '#3b82f6' }, // Blue-500
+  { name: 'Pre-order', value: 33, color: '#14b8a6' },           // Teal-500
 ];
 
-// --- Metric Card ---
-type MetricCardProps = {
-  icon: React.ElementType;
-  label: string;
-  value: string;
-  change: string;
-  up: boolean;
-};
-
-function MetricCard({ icon: Icon, label, value, change, up }: MetricCardProps) {
+const Dashboard = () => {
   return (
-    <div className="bg-white rounded-2xl p-5 flex flex-col gap-3 shadow-sm border border-slate-100">
-      <div className="flex items-center justify-between">
-        <div className="w-9 h-9 rounded-xl bg-teal-50 flex items-center justify-center">
-          <Icon size={18} className="text-teal-600" />
-        </div>
-        <span
-          className={`text-xs font-semibold flex items-center gap-0.5 ${
-            up ? "text-emerald-500" : "text-rose-500"
-          }`}
-        >
-          {up ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
-          {change}
-        </span>
-      </div>
-      <div>
-        <p className="text-[11px] font-medium text-slate-400 uppercase tracking-widest">
-          {label}
-        </p>
-        <p className="text-2xl font-bold text-slate-800 mt-0.5 tracking-tight">
-          {value}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-// --- Bar Chart ---
-type Period = "Năm" | "Quý";
-
-function BarChart({ period }: { period: Period }) {
-  const data =
-    period === "Quý" ? monthlyData.slice(3) : monthlyData;
-
-  return (
-    <div className="flex items-end gap-3 h-44 mt-4">
-      {data.map((d) => {
-        const curH = Math.round((d.current / maxVal) * 100);
-        const prevH = Math.round((d.prev / maxVal) * 100);
-        return (
-          <div key={d.month} className="flex flex-col items-center gap-1 flex-1">
-            <div className="flex items-end gap-1 w-full justify-center" style={{ height: "160px" }}>
-              <div
-                className="w-5 rounded-t-md bg-slate-200 transition-all duration-500"
-                style={{ height: `${prevH}%` }}
-              />
-              <div
-                className="w-5 rounded-t-md bg-teal-600 transition-all duration-500"
-                style={{ height: `${curH}%` }}
-              />
-            </div>
-            <span className="text-[10px] font-semibold text-slate-400 tracking-wider">
-              {d.month}
-            </span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-// --- Sales Breakdown Row ---
-function SalesRow({
-  label,
-  value,
-  pct,
-  color,
-  icon: Icon,
-}: (typeof salesBreakdown)[0]) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-teal-50 flex items-center justify-center">
-            <Icon size={14} className="text-teal-600" />
-          </div>
-          <span className="text-sm font-semibold text-slate-700">{label}</span>
-        </div>
-        <span className="text-sm font-bold text-slate-800">
-          {value.toLocaleString()} VND
-        </span>
-      </div>
-      <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-        <div
-          className={`h-full rounded-full ${color} transition-all duration-700`}
-          style={{ width: `${pct}%` }}
+    <div className="overflow-y-auto p-6 bg-gray-50 font-sans">
+      {/* 1. Stat Cards Row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+        <StatCard 
+          title="Tổng đơn hàng" 
+          value="156" 
+          change="+12%" 
+          icon={<ShoppingCart size={20} />} 
+        />
+        <StatCard 
+          title="Doanh thu" 
+          value="485.600.000 ₫" 
+          change="+8%" 
+          icon={<DollarSign size={20} />} 
+        />
+        <StatCard 
+          title="Sản phẩm" 
+          value="87" 
+          icon={<Box size={20} />} 
+        />
+        <StatCard 
+          title="Khách hàng" 
+          value="1243" 
+          change="+23%" 
+          icon={<Users size={20} />} 
+        />
+        <StatCard 
+          title="Đổi trả chờ duyệt" 
+          value="1" 
+          subValue="cần xử lý"
+          icon={<RotateCcw size={20} />} 
         />
       </div>
-      <p className="text-[11px] text-slate-400">{pct}% tổng doanh thu</p>
-    </div>
-  );
-}
 
-// --- Main Dashboard ---
-export default function Dashboard() {
-  const [period, setPeriod] = useState<Period>("Năm");
-
-  return (
-    <div className="min-h-screen bg-slate-50 p-6 font-sans">
-      <div className="max-w-4xl mx-auto space-y-6">
-
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
-            Doanh Thu
-          </h1>
-          <p className="text-sm text-slate-400 mt-1">
-            Hiệu quả tài chính và sức khỏe hoạt động lâm sàng theo thời gian thực.{" "}
-            <span className="text-slate-500">
-              Phân tích dữ liệu bán hàng dược phẩm và kính mắt một cách chuyên nghiệp.
-            </span>
-          </p>
-        </div>
-
-        {/* Metric Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <MetricCard
-            icon={DollarSign}
-            label="Tổng doanh thu"
-            value="289.000 VND"
-            change="12.4%"
-            up={true}
-          />
-          <MetricCard
-            icon={ShoppingBag}
-            label="Giá trị trung bình"
-            value="412.50 VND"
-            change="5.2%"
-            up={true}
-          />
-        </div>
-
-        {/* Bottom Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-
-          {/* Bar Chart */}
-          <div className="md:col-span-3 bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
-            <div className="flex items-start justify-between">
-              <div>
-                <h2 className="text-base font-bold text-slate-800">
-                  Xu hướng doanh thu hàng tháng
-                </h2>
-                <p className="text-[11px] text-slate-400 mt-0.5">
-                  So sánh hiệu quả hoạt động (Năm hiện tại so với năm trước)
-                </p>
-              </div>
-              <div className="flex gap-1 bg-slate-100 rounded-lg p-0.5">
-                {(["Năm", "Quý"] as Period[]).map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => setPeriod(p)}
-                    className={`text-xs font-semibold px-3 py-1.5 rounded-md transition-all ${
-                      period === p
-                        ? "bg-white text-slate-700 shadow-sm"
-                        : "text-slate-400 hover:text-slate-600"
-                    }`}
-                  >
-                    {p}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <BarChart period={period} />
-
-            {/* Legend */}
-            <div className="flex items-center gap-4 mt-3">
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-sm bg-teal-600" />
-                <span className="text-[11px] text-slate-500">Năm Nay</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-sm bg-slate-200" />
-                <span className="text-[11px] text-slate-500">Năm Ngoái</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Sales Breakdown */}
-          <div className="md:col-span-2 bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
-            <h2 className="text-base font-bold text-slate-800 mb-4">
-              Phân tích doanh số bán hàng
-            </h2>
-            <div className="flex flex-col gap-5">
-              {salesBreakdown.map((item) => (
-                <SalesRow key={item.label} {...item} />
-              ))}
-            </div>
+      {/* 2. Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* Bar Chart Container */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+          <h3 className="text-lg font-bold mb-8 text-slate-800">Doanh thu theo tháng</h3>
+          <div className="h-[350px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={barData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis 
+                  dataKey="name" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: '#94a3b8', fontSize: 12 }} 
+                  dy={10}
+                />
+                <YAxis 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: '#94a3b8', fontSize: 12 }} 
+                  tickFormatter={(value: any) => `${value / 1000000}M`}
+                />
+                <Tooltip 
+                  cursor={{ fill: '#f1f5f9' }}
+                  content={({ active, payload, label }: any) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-white p-4 border border-gray-100 shadow-xl rounded-lg">
+                          <p className="font-bold text-slate-700 mb-1">{label}</p>
+                          <p className="text-teal-500 text-sm">
+                            revenue : {payload[0].value?.toLocaleString()} ₫
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar 
+                  dataKey="revenue" 
+                  fill="#14b8a6" 
+                  radius={[4, 4, 0, 0]} 
+                  barSize={30}
+                />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
+
+        {/* Pie Chart Container */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+          <h3 className="text-lg font-bold mb-8 text-slate-800">Đơn hàng theo loại</h3>
+          <div className="h-[350px] w-full flex items-center justify-center relative">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={0}
+                  outerRadius={120}
+                  paddingAngle={0}
+                  dataKey="value"
+                  label={({ name, value }: any) => `${name}: ${value}`}
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
       </div>
     </div>
   );
-}
+};
+
+// --- Sub-components ---
+
+const StatCard = ({ title, value, change, icon, subValue }: any) => (
+  <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between min-h-[160px]">
+    <div className="flex justify-between items-start">
+      <span className="text-gray-500 text-sm font-medium">{title}</span>
+      <div className="p-2 bg-teal-50 text-teal-500 rounded-lg">
+        {icon}
+      </div>
+    </div>
+    <div className="mt-4">
+      <h2 className="text-2xl font-bold text-slate-800">{value}</h2>
+      <div className="flex items-center mt-1">
+        {change && (
+          <span className="text-emerald-500 text-xs font-bold mr-1">{change}</span>
+        )}
+        <span className="text-gray-400 text-xs">
+          {change ? "so với tháng trước" : subValue}
+        </span>
+      </div>
+    </div>
+  </div>
+);
+
+export default Dashboard;

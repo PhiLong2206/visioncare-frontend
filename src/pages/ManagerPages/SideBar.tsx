@@ -1,12 +1,13 @@
-import { Eye, LayoutDashboard, Package, Banknote, BookOpenText, Users, CreditCard } from "lucide-react";
+import { Eye, LayoutDashboard, Package, Banknote, Users, CreditCard, FileText, ChartColumn } from "lucide-react";
 
 const navItems = [
-    { text: "THỐNG KÊ", label: "DASHBOARD", icon: <LayoutDashboard /> },
+    { text: "DASHBOARD", label: "DASHBOARD", icon: <LayoutDashboard /> },
+    { text: "DOANH THU", label: "REVENUE", icon: <ChartColumn /> },
     { text: "KHO", label: "INVENTORY", icon: <Package /> },
     { text: "GIÁ CẢ", label: "PRICING", icon: <Banknote /> },
     { text: "HOÀN/TRẢ", label: "CLAIMS/REFUNDS", icon: <CreditCard /> },
-    // { label: "POLICIES", icon: <BookOpenText /> },
-    // { label: "TEAM", icon: <Users /> },
+    { text: "PHIẾU NHẬP KHO", label: "RECEIPT", icon: <FileText /> },
+    { text: "NGƯỜI DÙNG", label: "TEAM", icon: <Users /> },
 ];
 
 type SideBarProps = {

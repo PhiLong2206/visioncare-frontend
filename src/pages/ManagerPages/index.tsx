@@ -2,10 +2,12 @@ import { useState, ReactElement } from "react";
 import SideBar from "./SideBar";
 import { Bell } from "lucide-react";
 import Dashboard from "./Dashboard";
-import Inventory from "./Inventory";
-import Policies from "./Policies";
 import Team from "./Team";
-import ClaimsRefunds from "./ClaimNRefund";
+import Pricing from "./Pricing";
+import Refund from "./ClaimNRefund";
+import ProductManagement from "./Inventory";
+import InventoryApproval from "./Receipt";
+import Revenue from "./Revenue";
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function StaffPage() {
@@ -39,13 +41,15 @@ export default function StaffPage() {
                 {activeNav === "DASHBOARD" ? (
                     <Dashboard />
                 ) : activeNav === "INVENTORY" ? (
-                    <Inventory />
+                    <ProductManagement />
                 ) : activeNav === "PRICING" ? (
-                    <h1>PRICING</h1>
+                    <Pricing />
+                ) : activeNav === "REVENUE" ? (
+                    <Revenue />
                 ) : activeNav === "CLAIMS/REFUNDS" ? (
-                    <ClaimsRefunds />
-                ) : activeNav === "POLICIES" ? (
-                    <Policies />
+                    <Refund />
+                ) : activeNav === "RECEIPT" ? (
+                    <InventoryApproval />
                 ) : activeNav === "TEAM" ? (
                     <Team />
                 ) : null}

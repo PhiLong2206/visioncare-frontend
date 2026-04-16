@@ -1,310 +1,189 @@
-import { useState } from "react";
-import {
-  Filter, User, Printer, History, X, RefreshCw, BadgeDollarSign,
-  ChevronRight, AlertTriangle, Clock, ShieldCheck,
-} from "lucide-react";
+import React, { useState } from 'react';
+import { Eye, CheckCircle, XCircle, X } from 'lucide-react';
 
-// ── Types ─────────────────────────────────────────────────────────────────────
-type ClaimType = "DEFECT CLAIM" | "REFUND" | "EMERGENCY";
-type ClaimStatus = "In Review" | "Pending" | "Urgent";
-type WarrantyStatus = "Warranty Active" | "Warranty Expired" | "Under Review";
-
-interface Claim {
-  id: string;
-  type: ClaimType;
-  customer: string;
-  product: string;
-  timeAgo: string;
-  status: ClaimStatus;
-}
-
-interface ClaimDetail {
+// Kiểu dữ liệu cho yêu cầu
+interface RequestItem {
   id: string;
   customer: string;
-  memberSince: string;
-  warrantyStatus: WarrantyStatus;
-  issueDescription: string;
-  originalProduct: string;
-  purchaseDate: string;
-  warrantyType: string;
-  remainingTerm: string;
-  auditLog: string;
+  type: 'Đổi trả' | 'Bảo hành' | 'Hoàn tiền';
+  reason: string;
+  status: 'Chờ xác nhận' | 'Đã duyệt' | 'rejected';
+  date: string;
 }
 
-// ── Mock Data ─────────────────────────────────────────────────────────────────
-const CLAIMS: Claim[] = [
-  { id: "CLM-4902", type: "DEFECT CLAIM", customer: "Sarah J. Miller", product: "Varilux X Series – Lens Peeling", timeAgo: "2h ago", status: "In Review" },
-  { id: "CLM-4899", type: "REFUND", customer: "Robert Chen", product: "Frame Fitting Issue – Gucci GG001", timeAgo: "5h ago", status: "Pending" },
-  { id: "CLM-4885", type: "EMERGENCY", customer: "Elena Rodriguez", product: "Shattered Lens – High Impact", timeAgo: "1d ago", status: "Urgent" },
-];
+const Refund = () => {
+  const [selectedRequest, setSelectedRequest] = useState<RequestItem | null>(null);
+  const [managerNote, setManagerNote] = useState('');
 
-const CLAIM_DETAILS: Record<string, ClaimDetail> = {
-  "CLM-4902": {
-    id: "CLM-4902", customer: "Sarah J. Miller", memberSince: "2019",
-    warrantyStatus: "Warranty Active",
-    issueDescription: '"Bệnh nhân báo cáo tình trạng bong tróc dần lớp phủ ngoài của kính áp tròng bên trái (OS). Ban đầu chỉ là một lỗ nhỏ gần vùng mũi và lan rộng trong vòng 48 giờ. Không có tác động mạnh nào được báo cáo. Bệnh nhân tuân thủ các quy trình vệ sinh được khuyến nghị."',
-    originalProduct: "Varilux X Design (1.67)", purchaseDate: "Oct 12, 2023",
-    warrantyType: "Premium Performance (2yr)", remainingTerm: "14 Months Remaining",
-    auditLog: "Claim initiated by Staff (ID: OP-441) at 10:14 AM",
-  },
-  "CLM-4899": {
-    id: "CLM-4899", customer: "Robert Chen", memberSince: "2021",
-    warrantyStatus: "Under Review",
-    issueDescription: '"Bệnh nhân cho biết gọng kính Gucci GG001 không nằm cân đối trên khuôn mặt sau khi được chuyên gia chỉnh sửa. Gọng kính bên trái có vẻ ngắn hơn 3mm, gây khó chịu kéo dài. Không phát hiện hư hỏng vật lý nào."',
-    originalProduct: "Gucci GG001 Frames", purchaseDate: "Aug 5, 2023",
-    warrantyType: "Standard (1yr)", remainingTerm: "4 Months Remaining",
-    auditLog: "Claim reviewed by Staff (ID: OP-212) at 09:30 AM",
-  },
-  "CLM-4885": {
-    id: "CLM-4885", customer: "Elena Rodriguez", memberSince: "2020",
-    warrantyStatus: "Warranty Expired",
-    issueDescription: '"Bệnh nhân đến khám với tình trạng tròng kính bên phải (OD) bị vỡ hoàn toàn sau khi tham gia hoạt động thể thao cường độ cao. Gọng kính bị hư hại. Bệnh nhân yêu cầu thay thế khẩn cấp do suy giảm thị lực."',
-    originalProduct: "Nike Flexon Sport (1.74)", purchaseDate: "Mar 18, 2022",
-    warrantyType: "Basic Coverage", remainingTerm: "Expired",
-    auditLog: "Emergency flag set by Staff (ID: OP-109) at 08:45 AM",
-  },
-};
+  // Dữ liệu mẫu dựa trên hình ảnh
+  const data: RequestItem[] = [
+    {
+      id: 'VC-2024-001',
+      customer: 'Nguyễn Văn An',
+      type: 'Đổi trả',
+      reason: 'Sản phẩm không đúng màu như hình',
+      status: 'Chờ xác nhận',
+      date: '2024-03-08',
+    },
+    {
+      id: 'VC-2024-004',
+      customer: 'Nguyễn Văn An',
+      type: 'Bảo hành',
+      reason: 'Kính bị trầy xước khi nhận hàng',
+      status: 'Đã duyệt',
+      date: '2024-03-22',
+    },
+    {
+      id: 'VC-2024-005',
+      customer: 'Trần Thị Bình',
+      type: 'Hoàn tiền',
+      reason: 'Muốn hoàn tiền do đặt nhầm',
+      status: 'rejected',
+      date: '2024-03-23',
+    },
+  ];
 
-// ── Style Maps ────────────────────────────────────────────────────────────────
-const CLAIM_TYPE_STYLES: Record<ClaimType, string> = {
-  "DEFECT CLAIM": "bg-blue-100 text-blue-700",
-  REFUND: "bg-emerald-100 text-emerald-700",
-  EMERGENCY: "bg-red-100 text-red-600",
-};
-
-const STATUS_STYLES: Record<ClaimStatus, string> = {
-  "In Review": "text-teal-600 font-semibold",
-  Pending: "text-gray-400",
-  Urgent: "text-red-500 font-semibold",
-};
-
-const WARRANTY_STYLES: Record<WarrantyStatus, string> = {
-  "Warranty Active": "bg-teal-500 text-white",
-  "Warranty Expired": "bg-red-500 text-white",
-  "Under Review": "bg-amber-400 text-white",
-};
-
-const REJECT_REASONS = [
-  "Không phát hiện lỗi",
-  "Hết thời hạn bảo hành",
-  "Hư hỏng do người dùng gây ra",
-  "Thiếu giấy tờ",
-  "Yêu cầu trùng lặp",
-];
-
-// ── Component ─────────────────────────────────────────────────────────────────
-export default function ClaimsRefunds() {
-  const [selectedId, setSelectedId] = useState("CLM-4902");
-  const [staffNote, setStaffNote] = useState("");
-  const [rejectReason, setRejectReason] = useState("");
-  const [actionMsg, setActionMsg] = useState<string | null>(null);
-
-  const detail = CLAIM_DETAILS[selectedId];
-
-  const handleAction = (action: string) => {
-    setActionMsg(`✓ ${action} submitted for ${selectedId}`);
-    setTimeout(() => setActionMsg(null), 3000);
+  const getStatusClass = (status: string) => {
+    switch (status) {
+      case 'Chờ xác nhận': return 'bg-orange-100 text-orange-600 border border-orange-200';
+      case 'Đã duyệt': return 'bg-green-100 text-green-600 border border-green-200';
+      case 'rejected': return 'bg-red-100 text-red-600 border border-red-200';
+      default: return 'bg-gray-100 text-gray-600';
+    }
   };
 
   return (
-
-    <main className="flex-1 overflow-y-auto px-8 py-6">
-      {/* Page Header */}
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Khiếu nại &amp; Hoàn tiền</h1>
-          <p className="text-sm text-gray-400 mt-1">Quản lý các sai sót về sản phẩm, khiếu nại về đảm bảo chất lượng và yêu cầu hoàn tiền của bệnh nhân với độ chính xác lâm sàng.</p>
-        </div>
-      </div>
-
-      {/* Body: two-column */}
-      <div className="flex gap-5 items-start">
-        {/* ── Left: Active Queue ── */}
-        <div className="w-64 shrink-0">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-bold text-gray-700">Hàng Chờ</h2>
-            <button className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 border border-gray-200 rounded-md px-2 py-1 transition-colors">
-              <Filter className="w-3 h-3" /> Bộ lọc
-            </button>
+    <div className="min-h-screen bg-gray-50 p-8 font-sans text-gray-800">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex justify-between items-start mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Duyệt đổi trả / bảo hành</h1>
+            <p className="text-gray-500 mt-1">Manager phê duyệt các yêu cầu khiếu nại từ khách hàng</p>
           </div>
-
-          <div className="space-y-3">
-            {CLAIMS.map((claim) => (
-              <button
-                key={claim.id}
-                onClick={() => setSelectedId(claim.id)}
-                className={`w-full text-left rounded-xl border p-4 transition-all ${selectedId === claim.id
-                    ? "border-teal-400 bg-white shadow-md"
-                    : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm"
-                  }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full tracking-wide ${CLAIM_TYPE_STYLES[claim.type]}`}>
-                    {claim.type}
-                  </span>
-                  <span className="text-[10px] text-gray-400">#{claim.id}</span>
-                </div>
-                <p className="font-semibold text-gray-800 text-sm">{claim.customer}</p>
-                <p className="text-xs text-gray-400 mt-0.5 leading-tight">{claim.product}</p>
-                <div className="flex items-center justify-between mt-3">
-                  <span className="flex items-center gap-1 text-[11px] text-gray-400">
-                    <Clock className="w-3 h-3" /> {claim.timeAgo}
-                  </span>
-                  <span className={`text-[11px] ${STATUS_STYLES[claim.status]}`}>{claim.status}</span>
-                </div>
-              </button>
-            ))}
-          </div>
+          <span className="bg-orange-50 text-orange-600 px-3 py-1 rounded-full text-sm font-medium border border-orange-100">
+            1 chờ duyệt
+          </span>
         </div>
 
-        {/* ── Right: Claim Detail ── */}
-        <div className="flex-1 min-w-0">
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            {/* Claim Header */}
-            <div className="flex items-start justify-between mb-5">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">Mã Khiếu Nại: <span className="text-teal-600">#{detail.id}</span></h2>
-                <div className="flex items-center gap-1.5 mt-1 text-sm text-gray-400">
-                  <User className="w-3.5 h-3.5" />
-                  <span>{detail.customer} • Member since {detail.memberSince}</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className={`text-xs font-bold px-3 py-1.5 rounded-lg ${WARRANTY_STYLES[detail.warrantyStatus]}`}>
-                  {detail.warrantyStatus}
-                </span>
-              </div>
-            </div>
+        {/* Table */}
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-gray-100 text-gray-400 text-sm">
+                <th className="px-6 py-4 font-medium">Mã đơn</th>
+                <th className="px-6 py-4 font-medium">Khách hàng</th>
+                <th className="px-6 py-4 font-medium">Loại</th>
+                <th className="px-6 py-4 font-medium">Lý do</th>
+                <th className="px-6 py-4 font-medium">Trạng thái</th>
+                <th className="px-6 py-4 font-medium">Ngày</th>
+                <th className="px-6 py-4 font-medium text-center">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {data.map((item) => (
+                <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 font-medium">{item.id}</td>
+                  <td className="px-6 py-4">{item.customer}</td>
+                  <td className="px-6 py-4">
+                    <span className="px-3 py-1 bg-gray-100 rounded-full text-xs border border-gray-200">
+                      {item.type}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-gray-600 max-w-xs truncate">{item.reason}</td>
+                  <td className="px-6 py-4">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusClass(item.status)}`}>
+                      {item.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-gray-500">{item.date}</td>
+                  <td className="px-6 py-4 text-center">
+                    <button 
+                      onClick={() => setSelectedRequest(item)}
+                      className="p-1 hover:text-blue-600 transition-colors"
+                    >
+                      <Eye size={18} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-            {/* Two-col layout: Issue + Clinical Data */}
-            <div className="grid grid-cols-5 gap-5 mb-5">
-              {/* Issue Description */}
-              <div className="col-span-3">
-                <p className="text-[10px] font-semibold text-gray-400 tracking-widest mb-2">Mô tả lỗi</p>
-                <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                  <p className="text-sm text-gray-700 italic leading-relaxed">{detail.issueDescription}</p>
-                </div>
+        {/* Modal Xử lý yêu cầu */}
+        {selectedRequest && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
+              {/* Modal Header */}
+              <div className="flex justify-between items-center p-6 border-b border-gray-100">
+                <h2 className="text-xl font-bold">Xử lý yêu cầu - {selectedRequest.id}</h2>
+                <button onClick={() => setSelectedRequest(null)} className="text-gray-400 hover:text-gray-600">
+                  <X size={20} />
+                </button>
+              </div>
 
-                {/* Photo Evidence */}
-                <p className="text-[10px] font-semibold text-gray-400 tracking-widest mt-4 mb-2">BẰNG CHỨNG HÌNH ẢNH VỀ LỖI</p>
-                <div className="flex gap-3">
-                  {/* Placeholder images */}
-                  <div className="w-28 h-24 rounded-xl bg-gray-900 flex items-center justify-center overflow-hidden border border-gray-200">
-                    <div className="w-16 h-16 rounded-full border-4 border-gray-600 flex items-center justify-center">
-                      <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
-                        <div className="w-3 h-3 rounded-full bg-gray-500" />
-                      </div>
-                    </div>
+              {/* Modal Body */}
+              <div className="p-6 space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-400 mb-1">Khách hàng</p>
+                    <p className="font-semibold text-gray-700">{selectedRequest.customer}</p>
                   </div>
-                  <div className="w-28 h-24 rounded-xl bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-200">
-                    <div className="w-12 h-12 border-2 border-amber-400 flex items-center justify-center">
-                      <div className="w-5 h-5 bg-amber-400 opacity-60" />
-                    </div>
+                  <div>
+                    <p className="text-sm text-gray-400 mb-1">Loại</p>
+                    <span className="px-3 py-1 bg-gray-100 rounded-full text-xs border border-gray-200">
+                      {selectedRequest.type}
+                    </span>
                   </div>
-                  {/* <button className="w-28 h-24 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1 text-gray-300 hover:border-teal-300 hover:text-teal-400 transition-colors">
-                      <span className="text-2xl leading-none">+</span>
-                      <span className="text-[10px]">Thêm ảnh</span>
-                    </button> */}
+                </div>
+
+                <div>
+                  <p className="text-sm text-gray-400 mb-1">Lý do</p>
+                  <p className="font-semibold text-gray-700">{selectedRequest.reason}</p>
+                </div>
+
+                <div>
+                  <p className="text-sm text-gray-400 mb-1">Trạng thái</p>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusClass(selectedRequest.status)}`}>
+                    {selectedRequest.status}
+                  </span>
+                </div>
+
+                <div>
+                  <label className="text-sm text-gray-700 font-bold block mb-2">Ghi chú Manager</label>
+                  <textarea 
+                    className="w-full border border-teal-500 rounded-xl p-3 h-24 focus:outline-none focus:ring-2 focus:ring-teal-200 transition-all text-sm"
+                    placeholder="Nhập lý do duyệt / từ chối..."
+                    value={managerNote}
+                    onChange={(e) => setManagerNote(e.target.value)}
+                  />
                 </div>
               </div>
 
-              {/* Clinical Data Cluster */}
-              <div className="col-span-2">
-                <p className="text-[10px] font-semibold text-gray-400 tracking-widest mb-2">CỤM DỮ LIỆU LÂM SÀNG</p>
-                <div className="bg-gray-50 rounded-xl border border-gray-100 divide-y divide-gray-100">
-                  {[
-                    { label: "Sản phẩm gốc", value: detail.originalProduct },
-                    { label: "Ngày mua", value: detail.purchaseDate },
-                    { label: "Loại bảo hành", value: detail.warrantyType },
-                    {
-                      label: "Thời hạn còn lại",
-                      value: detail.remainingTerm,
-                      highlight: detail.remainingTerm !== "Expired",
-                    },
-                  ].map(({ label, value, highlight }) => (
-                    <div key={label} className="px-4 py-3 flex items-start justify-between gap-2">
-                      <span className="text-xs text-gray-400 shrink-0">{label}</span>
-                      <span className={`text-xs font-semibold text-right ${highlight ? "text-teal-600" : "text-gray-700"}`}>
-                        {value}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Staff Assessment Note */}
-                <p className="text-[10px] font-semibold text-gray-400 tracking-widest mt-4 mb-2">GHI CHÚ TỪ NHÂN VIÊN</p>
-                <textarea
-                  value={staffNote}
-                  onChange={(e) => setStaffNote(e.target.value)}
-                  placeholder="Thêm ghi chú y tế nội bộ hoặc ghi nhận các khiếu nại..."
-                  rows={4}
-                  className="w-full text-xs text-gray-600 placeholder-gray-300 border border-gray-200 rounded-xl p-3 resize-none focus:outline-none focus:ring-1 focus:ring-teal-400 bg-white"
-                />
-              </div>
-            </div>
-
-            {/* Action Bar */}
-            <div className="border-t border-gray-100 pt-5 space-y-3">
-              {/* Toast */}
-              {actionMsg && (
-                <div className="bg-teal-50 border border-teal-200 text-teal-700 text-xs font-semibold rounded-lg px-4 py-2">
-                  {actionMsg}
-                </div>
-              )}
-
-              {/* Reject row */}
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => handleAction("Claim Rejection")}
-                  className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
+              {/* Modal Footer */}
+              <div className="p-6 grid grid-cols-2 gap-4">
+                <button 
+                  className="flex items-center justify-center gap-2 bg-[#22c55e] hover:bg-[#16a34a] text-white py-3 rounded-xl font-bold transition-colors"
+                  onClick={() => setSelectedRequest(null)}
                 >
-                  <X className="w-4 h-4" /> Từ chối
+                  <CheckCircle size={18} />
+                  Duyệt
                 </button>
-                <select
-                  value={rejectReason}
-                  onChange={(e) => setRejectReason(e.target.value)}
-                  className="text-sm border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:outline-none focus:ring-1 focus:ring-red-300 text-gray-500 appearance-none cursor-pointer"
+                <button 
+                  className="flex items-center justify-center gap-2 bg-[#ef4444] hover:bg-[#dc2626] text-white py-3 rounded-xl font-bold transition-colors"
+                  onClick={() => setSelectedRequest(null)}
                 >
-                  <option value="">Chọn lý do...</option>
-                  {REJECT_REASONS.map((r) => (
-                    <option key={r} value={r}>{r}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Approve row */}
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => handleAction("Replacement Approval")}
-                  className="flex items-center gap-2 border-2 border-teal-500 text-teal-600 hover:bg-teal-50 text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
-                >
-                  <RefreshCw className="w-4 h-4" /> Phê duyệt đổi hàng
-                </button>
-                <button
-                  onClick={() => handleAction("Refund Approval")}
-                  className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
-                >
-                  <BadgeDollarSign className="w-4 h-4" /> Phê duyệt hoàn tiền
+                  <XCircle size={18} />
+                  Từ chối
                 </button>
               </div>
             </div>
           </div>
-
-          {/* Audit Trail */}
-          {/* <button className="w-full mt-3 bg-white rounded-xl border border-gray-100 shadow-sm px-5 py-3.5 flex items-center justify-between hover:bg-gray-50 transition-colors group">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-teal-50 flex items-center justify-center">
-                  <ShieldCheck className="w-4 h-4 text-teal-500" />
-                </div>
-                <div className="text-left">
-                  <p className="text-sm font-semibold text-gray-700">Audit Trail Entry</p>
-                  <p className="text-xs text-gray-400">Last activity: {detail.auditLog}</p>
-                </div>
-              </div>
-              <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
-            </button> */}
-        </div>
+        )}
       </div>
-    </main>
+    </div>
   );
-}
+};
+
+export default Refund;

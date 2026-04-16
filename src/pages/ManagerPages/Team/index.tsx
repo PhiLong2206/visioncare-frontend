@@ -1,173 +1,99 @@
 import { useState } from "react";
-import {
-  Download,
-  UserPlus,
-  SlidersHorizontal,
-  ShieldCheck,
-  AlertTriangle,
-  KeyRound,
-  FileText,
-  Receipt,
-  Settings2,
-} from "lucide-react";
+import { SquarePen } from "lucide-react";
 
 // --- Types ---
-type StatusType = "ACTIVE" | "AWAY" | "RESTRICTED";
+type Status = "active" | "inactive";
 
-interface StaffMember {
+interface Member {
   id: number;
   name: string;
   email: string;
+  phone: string;
   role: string;
-  status: StatusType;
-  lastLogin: string;
-  avatar: string;
-  avatarBg: string;
+  status: Status;
 }
 
 // --- Data ---
-const staffList: StaffMember[] = [
-  {
-    id: 1,
-    name: "Dr. Elena Rodriguez",
-    email: "elena.r@visioncare.com",
-    role: "Manager",
-    status: "ACTIVE",
-    lastLogin: "2h ago",
-    avatar: "ER",
-    avatarBg: "bg-teal-200 text-teal-800",
-  },
-  {
-    id: 2,
-    name: "Marcus Chen",
-    email: "m.chen@visioncare.com",
-    role: "Support",
-    status: "ACTIVE",
-    lastLogin: "1d ago",
-    avatar: "MC",
-    avatarBg: "bg-blue-100 text-blue-700",
-  },
-  {
-    id: 3,
-    name: "Sarah Jenkins",
-    email: "s.jenkins@visioncare.com",
-    role: "Support",
-    status: "AWAY",
-    lastLogin: "3h ago",
-    avatar: "SJ",
-    avatarBg: "bg-purple-100 text-purple-700",
-  },
-  {
-    id: 4,
-    name: "James Wilson",
-    email: "j.wilson@visioncare.com",
-    role: "Ops",
-    status: "RESTRICTED",
-    lastLogin: "Never",
-    avatar: "JW",
-    avatarBg: "bg-slate-200 text-slate-600",
-  },
+const initialMembers: Member[] = [
+  { id: 1, name: "Nguyễn Văn An", email: "an.nguyen@email.com", phone: "0901234567", role: "Khách hàng", status: "active" },
+  { id: 2, name: "Trần Thị Bình", email: "binh.tran@email.com", phone: "0912345678", role: "Khách hàng", status: "active" },
+  { id: 3, name: "Lê Minh Châu", email: "chau.le@visioncare.vn", phone: "0923456789", role: "Hỗ trợ", status: "active" },
+  { id: 4, name: "Phạm Đức Dũng", email: "dung.pham@visioncare.vn", phone: "0934567890", role: "Vận hành", status: "active" },
+  { id: 5, name: "Hoàng Thị Lan", email: "lan.hoang@visioncare.vn", phone: "0945678901", role: "Quản lý", status: "active" },
+  { id: 6, name: "Admin System", email: "admin@visioncare.vn", phone: "0956789012", role: "Admin", status: "active" },
+  { id: 7, name: "Võ Thanh Hùng", email: "hung.vo@email.com", phone: "0967890123", role: "Khách hàng", status: "active" },
+  { id: 8, name: "Đặng Thu Hương", email: "huong.dang@visioncare.vn", phone: "0978901234", role: "Hỗ trợ", status: "inactive" },
 ];
 
-const statusStyles: Record<StatusType, string> = {
-  ACTIVE: "bg-teal-500 text-white",
-  AWAY: "bg-amber-400 text-white",
-  RESTRICTED: "bg-rose-500 text-white",
-};
+// --- Edit Modal ---
+function EditModal({ member, onSave, onClose }: { member: Member; onSave: (m: Member) => void; onClose: () => void }) {
+  const [form, setForm] = useState({ ...member });
 
-const roleColors: Record<string, string> = {
-  Manager: "text-teal-600",
-  Support: "text-purple-500",
-  Ops: "text-slate-500",
-};
+  const roles = ["Khách hàng", "Hỗ trợ", "Vận hành", "Quản lý", "Admin"];
 
-// Permission matrix rows
-const permissionRows = [
-  { icon: FileText, label: "Patient Records", perms: ["M", "O", "S"] },
-  { icon: Receipt, label: "Billing & Quotes", perms: ["M", "S", "O"] },
-  { icon: Settings2, label: "System Config", perms: ["M", "O", "S"] },
-];
-
-const permColors: Record<string, string> = {
-  M: "bg-teal-600 text-white",
-  S: "bg-blue-500 text-white",
-  O: "bg-slate-200 text-slate-500",
-};
-
-// --- Sub-components ---
-
-function Avatar({ initials, bg }: { initials: string; bg: string }) {
   return (
-    <div
-      className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-extrabold shrink-0 ${bg}`}
-    >
-      {initials}
-    </div>
-  );
-}
+    <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
+      <div className="bg-white rounded-2xl shadow-xl p-6 w-96 flex flex-col gap-4">
+        <h3 className="text-base font-bold text-slate-800">Chỉnh sửa thành viên</h3>
 
-function StatusBadge({ status }: { status: StatusType }) {
-  return (
-    <span
-      className={`text-[10px] font-bold px-2 py-0.5 rounded-full tracking-wide ${statusStyles[status]}`}
-    >
-      {status}
-    </span>
-  );
-}
+        <div className="flex flex-col gap-3">
+          {(["name", "email", "phone"] as const).map((field) => (
+            <div key={field} className="flex flex-col gap-1">
+              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                {field === "name" ? "Tên" : field === "email" ? "Email" : "SĐT"}
+              </label>
+              <input
+                className="border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-400"
+                value={form[field]}
+                onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))}
+              />
+            </div>
+          ))}
 
-function StaffRow({ member }: { member: StaffMember }) {
-  return (
-    <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr] items-center gap-2 py-3 border-b border-slate-100 last:border-0 hover:bg-slate-50 rounded-lg px-1 transition group">
-      {/* Staff member */}
-      <div className="flex items-center gap-2.5">
-        <Avatar initials={member.avatar} bg={member.avatarBg} />
-        <div>
-          <p className="text-sm font-bold text-slate-800 leading-tight">{member.name}</p>
-          <p className="text-[11px] text-slate-400">{member.email}</p>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Vai trò</label>
+            <select
+              className="border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white"
+              value={form.role}
+              onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
+            >
+              {roles.map((r) => <option key={r}>{r}</option>)}
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Trạng thái</label>
+            <div className="flex gap-2">
+              {(["active", "inactive"] as Status[]).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setForm((f) => ({ ...f, status: s }))}
+                  className={`flex-1 py-2 rounded-xl text-sm font-semibold border transition ${
+                    form.status === s
+                      ? s === "active"
+                        ? "bg-teal-50 border-teal-400 text-teal-600"
+                        : "bg-slate-100 border-slate-300 text-slate-600"
+                      : "border-slate-200 text-slate-400 hover:bg-slate-50"
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
-      {/* Role */}
-      <span className={`text-sm font-bold ${roleColors[member.role] ?? "text-slate-600"}`}>
-        {member.role}
-      </span>
-      {/* Status */}
-      <div>
-        <StatusBadge status={member.status} />
-      </div>
-      {/* Last login */}
-      <span className="text-xs text-slate-400">{member.lastLogin}</span>
-      {/* Actions */}
-      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition">
-        <button className="text-[10px] font-bold text-teal-600 hover:underline">Edit</button>
-        <button className="text-[10px] font-bold text-rose-400 hover:underline">Revoke</button>
-      </div>
-    </div>
-  );
-}
 
-function PermissionRow({
-  icon: Icon,
-  label,
-  perms,
-}: (typeof permissionRows)[0]) {
-  return (
-    <div className="flex items-center justify-between py-2.5 border-b border-slate-100 last:border-0">
-      <div className="flex items-center gap-2.5">
-        <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center">
-          <Icon size={13} className="text-slate-500" />
-        </div>
-        <span className="text-xs font-bold text-slate-700">{label}</span>
-      </div>
-      <div className="flex gap-1.5">
-        {perms.map((p, i) => (
-          <span
-            key={i}
-            className={`w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-extrabold ${permColors[p]}`}
+        <div className="flex gap-2 justify-end pt-1">
+          <button onClick={onClose} className="px-4 py-2 rounded-xl border border-slate-200 text-sm text-slate-500 hover:bg-slate-50 transition">
+            Hủy
+          </button>
+          <button
+            onClick={() => { onSave(form); onClose(); }}
+            className="px-4 py-2 rounded-xl bg-teal-600 text-white text-sm font-bold hover:bg-teal-700 transition"
           >
-            {p}
-          </span>
-        ))}
+            Lưu
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -175,154 +101,78 @@ function PermissionRow({
 
 // --- Main ---
 export default function Team() {
-  const [filterOpen, setFilterOpen] = useState(false);
+  const [members, setMembers] = useState(initialMembers);
+  const [editing, setEditing] = useState<Member | null>(null);
+
+  const handleSave = (updated: Member) => {
+    setMembers((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
+  };
+
+  const cols = "grid-cols-[1.4fr_2fr_1.3fr_1fr_1fr_60px]";
 
   return (
-    <div className="flex overflow-y-auto bg-slate-50 font-sans p-6">
-      <div className="max-w-4xl mx-auto space-y-5">
+    <div className="min-h-screen bg-slate-50 font-sans p-6">
+      <div className="max-w-6xl mx-auto">
+        {editing && (
+          <EditModal member={editing} onSave={handleSave} onClose={() => setEditing(null)} />
+        )}
 
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-              Staff &amp; Access Control
-            </h1>
-            <p className="text-sm text-slate-400 mt-1 max-w-sm leading-relaxed">
-              Manage clinical personnel, audit system access, and configure
-              granular permissions across all operational departments.
-            </p>
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          {/* Table Header */}
+          <div className={`grid ${cols} gap-4 px-6 py-4 border-b border-slate-100`}>
+            {["Tên", "Email", "SĐT", "Vai trò", "Trạng thái", "Thao tác"].map((h) => (
+              <span key={h} className="text-sm text-slate-400">{h}</span>
+            ))}
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-bold hover:bg-teal-700 transition shadow-md">
-              <UserPlus size={14} />
-              Onboard Staff
-            </button>
-          </div>
-        </div>
 
-        {/* Main Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_280px] gap-5">
+          {/* Rows */}
+          {members.map((member, i) => (
+            <div
+              key={member.id}
+              className={`grid ${cols} gap-4 items-center px-6 py-5 hover:bg-slate-50 transition ${
+                i !== members.length - 1 ? "border-b border-slate-100" : ""
+              }`}
+            >
+              {/* Name */}
+              <span className="text-sm font-bold text-slate-800">{member.name}</span>
 
-          {/* Left Column */}
-          <div className="flex flex-col gap-4">
+              {/* Email */}
+              <span className="text-sm text-slate-400 truncate">{member.email}</span>
 
-            {/* Active Personnel */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-extrabold text-slate-700 uppercase tracking-wide">
-                  Active Personnel
-                </h2>
-                <button
-                  onClick={() => setFilterOpen(!filterOpen)}
-                  className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-teal-600 transition border border-slate-200 rounded-lg px-3 py-1.5"
+              {/* Phone */}
+              <span className="text-sm text-slate-700">{member.phone}</span>
+
+              {/* Role */}
+              <span>
+                <span className="inline-block text-xs font-semibold text-slate-700 border border-slate-200 rounded-full px-3 py-1 bg-white">
+                  {member.role}
+                </span>
+              </span>
+
+              {/* Status */}
+              <span>
+                <span
+                  className={`inline-block text-xs font-semibold rounded-full px-3 py-1 border transition ${
+                    member.status === "active"
+                      ? "text-teal-600 border-teal-300 bg-teal-50"
+                      : "text-slate-400 border-slate-200 bg-slate-100"
+                  }`}
                 >
-                  <SlidersHorizontal size={12} />
-                  Filter by Role
+                  {member.status}
+                </span>
+              </span>
+
+              {/* Action */}
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setEditing(member)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition"
+                >
+                  <SquarePen size={17} />
                 </button>
               </div>
-
-              {/* Table header */}
-              <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-2 mb-1 px-1">
-                {["Staff Member", "Role", "Status", "Last Login", "Actions"].map((h) => (
-                  <span key={h} className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                    {h}
-                  </span>
-                ))}
-              </div>
-
-              {/* Rows */}
-              {staffList.map((member) => (
-                <StaffRow key={member.id} member={member} />
-              ))}
             </div>
-
-            {/* Security Audit Banner */}
-            <div className="bg-teal-50 border border-teal-100 rounded-2xl p-5 flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-teal-600 flex items-center justify-center shrink-0">
-                <ShieldCheck size={18} className="text-white" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-extrabold text-slate-800">
-                  Security Audit: Protocol 4.2
-                </p>
-                <p className="text-[12px] text-slate-500 mt-1 leading-relaxed">
-                  All staff access is logged with 256-bit encryption.
-                  Multi-factor authentication is currently{" "}
-                  <strong className="text-slate-700">enabled</strong> for all
-                  Manager and Ops roles.
-                </p>
-              </div>
-              <button className="text-xs font-bold text-teal-600 hover:text-teal-700 transition shrink-0 mt-0.5">
-                View Policy
-              </button>
-            </div>
-          </div>
-
-          {/* Right Column */}
-          <div className="flex flex-col gap-4">
-
-            {/* Access Matrix */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <KeyRound size={15} className="text-teal-600" />
-                <h2 className="text-sm font-extrabold text-slate-700">
-                  Access Matrix
-                </h2>
-              </div>
-
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
-                Functional Permissions
-              </p>
-
-              <div className="flex flex-col">
-                {permissionRows.map((row) => (
-                  <PermissionRow key={row.label} {...row} />
-                ))}
-              </div>
-
-              {/* Legend */}
-              <div className="mt-4">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
-                  Quick Legend
-                </p>
-                <div className="grid grid-cols-2 gap-1.5">
-                  {[
-                    { label: "Manager (M)", color: "bg-teal-600" },
-                    { label: "Supporter (S)", color: "bg-purple-500" },
-                    { label: "Ops (O)", color: "bg-slate-300" },
-                  ].map(({ label, color }) => (
-                    <div key={label} className="flex items-center gap-1.5">
-                      <div className={`w-2.5 h-2.5 rounded-full ${color}`} />
-                      <span className="text-[11px] text-slate-500 font-medium">{label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <button className="mt-5 w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 rounded-xl transition tracking-wide">
-                Configure All Roles
-              </button>
-            </div>
-
-            {/* Suspicious Activity Alert */}
-            <div className="bg-rose-50 border border-rose-100 rounded-2xl p-4">
-              <div className="flex items-start gap-3">
-                <AlertTriangle size={16} className="text-rose-500 mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-sm font-extrabold text-slate-800">
-                    Suspicious Activity
-                  </p>
-                  <p className="text-[12px] text-slate-500 mt-1 leading-relaxed">
-                    James Wilson's account was restricted due to 3 failed login
-                    attempts from an unknown IP.
-                  </p>
-                  <button className="mt-2 text-[11px] font-extrabold text-rose-600 hover:text-rose-700 tracking-widest uppercase transition">
-                    Investigate
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>
