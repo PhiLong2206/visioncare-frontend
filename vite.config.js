@@ -8,5 +8,14 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+   server: {
+    proxy: {
+      "/api": {
+        target: "https://escapable-exterior-tableware.ngrok-free.dev",
+        changeOrigin: true,
+        secure: true,
+      },
+    },
+  },
 
 })

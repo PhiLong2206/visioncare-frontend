@@ -130,7 +130,7 @@ const initialOrders = [
     prescription: null,
     importReceipt: null,
   },
-   {
+  {
     id: "VC-2026-006",
     customerName: "Nguyễn Văn A",
     address: "22 Nguyễn Xiển, Q.9, TP.HCM",
@@ -346,15 +346,16 @@ export default function OperationPage() {
   }, [user]);
 
   useEffect(() => {
-  if (!isLoggedIn || !user) {
-    navigate("/login");
-    return;
-  }
+    if (!isLoggedIn || !user) {
+      navigate("/login");
+      return;
+    }
 
-  if (!isOperationUser) {
-    navigate("/");
-  }
-}, [isLoggedIn, user, isOperationUser, navigate]);
+    if (!isOperationUser) {
+      navigate("/");
+    }
+  }, [isLoggedIn, user, isOperationUser, navigate]);
+
   useEffect(() => {
     return () => {
       previewImages.forEach((img) => {
@@ -382,7 +383,9 @@ export default function OperationPage() {
   const preOrderOrders = orders.filter((order) => order.type === "Pre-order");
 
   const deliveryOrders = orders.filter((order) =>
-    ["Sẵn sàng giao hàng", "Đang giao hàng", "Hoàn thành"].includes(order.status)
+    ["Sẵn sàng giao hàng", "Đang giao hàng", "Hoàn thành"].includes(
+      order.status
+    )
   );
 
   const inventoryItems = buildInventoryFromOrders(orders);
@@ -541,7 +544,10 @@ export default function OperationPage() {
   const handleCreateImportReceipt = () => {
     if (!selectedOrder) return;
 
-    if (!String(importForm.quantity).trim() || Number(importForm.quantity) <= 0) {
+    if (
+      !String(importForm.quantity).trim() ||
+      Number(importForm.quantity) <= 0
+    ) {
       toast.error("Vui lòng nhập số lượng nhập hợp lệ.");
       return;
     }
@@ -649,15 +655,23 @@ export default function OperationPage() {
 
             <div className="space-y-2 text-[16px] text-slate-600">
               <p>
-                <span className="font-semibold text-slate-700">• Gọng + Tròng:</span>{" "}
-                Mài tròng → Lắp kính → Kiểm tra CL → Đóng gói → Sẵn sàng giao hàng → Nhập mã vận đơn
+                <span className="font-semibold text-slate-700">
+                  • Gọng + Tròng:
+                </span>{" "}
+                Mài tròng → Lắp kính → Kiểm tra CL → Đóng gói → Sẵn sàng giao
+                hàng → Nhập mã vận đơn
               </p>
               <p>
-                <span className="font-semibold text-slate-700">• Pre-order:</span>{" "}
-                Chờ nhập hàng → Tạo phiếu nhập hàng → Chờ duyệt → Manager duyệt → Đã nhập hàng → Đóng gói → Sẵn sàng giao hàng
+                <span className="font-semibold text-slate-700">
+                  • Pre-order:
+                </span>{" "}
+                Chờ nhập hàng → Tạo phiếu nhập hàng → Chờ duyệt → Manager duyệt
+                → Đã nhập hàng → Đóng gói → Sẵn sàng giao hàng
               </p>
               <p>
-                <span className="font-semibold text-slate-700">• Kính mắt / PK:</span>{" "}
+                <span className="font-semibold text-slate-700">
+                  • Kính mắt / PK:
+                </span>{" "}
                 Đóng gói → Sẵn sàng giao hàng → Nhập mã vận đơn
               </p>
             </div>
@@ -754,7 +768,9 @@ export default function OperationPage() {
                       <th className="px-6 py-5 font-medium">Loại</th>
                       <th className="px-6 py-5 font-medium">Tổng tiền</th>
                       <th className="px-6 py-5 font-medium">Trạng thái</th>
-                      <th className="px-6 py-5 text-right font-medium">Thao tác</th>
+                      <th className="px-6 py-5 text-right font-medium">
+                        Thao tác
+                      </th>
                     </tr>
                   </thead>
 
@@ -820,349 +836,361 @@ export default function OperationPage() {
         </main>
       </div>
 
-      {selectedOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-6">
-          <div className="max-h-[92vh] w-full max-w-5xl overflow-auto rounded-[28px] bg-white shadow-2xl">
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-8 py-6">
-              <h2 className="text-[22px] font-bold text-slate-900">
-                Chi tiết đơn {selectedOrder.id}
-              </h2>
+     {selectedOrder && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-6">
+    <div className="flex h-[90vh] w-full max-w-7xl flex-col overflow-hidden rounded-[28px] bg-white shadow-2xl">
+      {/* HEADER */}
+      <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-8 py-5">
+        <h2 className="text-[22px] font-bold text-slate-900">
+          Chi tiết đơn {selectedOrder.id}
+        </h2>
 
-              <button
-                onClick={handleCloseOrder}
-                className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
-              >
-                <X size={22} />
-              </button>
+        <button
+          onClick={handleCloseOrder}
+          className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+        >
+          <X size={22} />
+        </button>
+      </div>
+
+      {/* BODY */}
+      <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[1.5fr_0.9fr]">
+        {/* LEFT */}
+        <div className="min-h-0 overflow-y-auto px-8 py-6">
+          {/* STEPPER */}
+          <div
+            className={`mb-6 grid gap-2 ${
+              processList.length >= 7 ? "grid-cols-7" : "grid-cols-5"
+            }`}
+          >
+            {processList.map((step, index) => {
+              const completed = index < currentProcessIndex;
+              const active = index === currentProcessIndex;
+              const isReached = completed || active;
+
+              return (
+                <div
+                  key={step}
+                  className="relative flex flex-col items-center text-center"
+                >
+                  {index < processList.length - 1 && (
+                    <div
+                      className={`absolute left-[58%] top-5 h-[2px] w-[84%] ${
+                        index < currentProcessIndex
+                          ? "bg-teal-500"
+                          : "bg-slate-200"
+                      }`}
+                    />
+                  )}
+
+                  <div
+                    className={`relative z-10 flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold ${
+                      isReached
+                        ? "bg-teal-500 text-white"
+                        : "bg-slate-200 text-slate-500"
+                    }`}
+                  >
+                    {completed ? <CheckCircle2 size={16} /> : index + 1}
+                  </div>
+
+                  <p className="mt-2 text-xs font-medium leading-4 text-slate-700">
+                    {step}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* CUSTOMER INFO */}
+          <div className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+              <p className="mb-1 text-sm text-slate-500">Khách hàng</p>
+              <p className="text-2xl font-semibold text-slate-900">
+                {selectedOrder.customerName}
+              </p>
             </div>
 
-            <div className="px-8 py-8">
-              <div
-                className={`mb-8 grid gap-2 ${
-                  processList.length >= 7 ? "grid-cols-8" : "grid-cols-6"
-                }`}
-              >
-                {processList.map((step, index) => {
-                  const completed = index < currentProcessIndex;
-                  const active = index === currentProcessIndex;
-                  const isReached = completed || active;
+            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+              <p className="mb-1 text-sm text-slate-500">Địa chỉ</p>
+              <p className="text-xl font-semibold text-slate-900">
+                {selectedOrder.address}
+              </p>
+            </div>
+          </div>
 
-                  return (
-                    <div
-                      key={step}
-                      className="relative flex flex-col items-center text-center"
-                    >
-                      {index < processList.length - 1 && (
-                        <div
-                          className={`absolute left-[58%] top-5 h-[2px] w-[84%] ${
-                            index < currentProcessIndex
-                              ? "bg-teal-500"
-                              : "bg-slate-200"
-                          }`}
-                        />
-                      )}
+          {/* TASK */}
+          <div className="mb-5 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h3 className="mb-3 text-xl font-semibold text-slate-900">
+              Nhiệm vụ vận hành
+            </h3>
 
-                      <div
-                        className={`relative z-10 flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold ${
-                          isReached
-                            ? "bg-teal-500 text-white"
-                            : "bg-slate-200 text-slate-500"
-                        }`}
-                      >
-                        {completed ? <CheckCircle2 size={18} /> : index + 1}
-                      </div>
+            <p className="text-base leading-8 text-slate-600">
+              {getOperationTask(selectedOrder)}
+            </p>
 
-                      <p className="mt-3 text-sm font-medium leading-5 text-slate-700">
-                        {step}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
+            {selectedOrder.type === "Pre-order" &&
+              selectedOrder.status === "Chờ nhập hàng" && (
+                <p className="mt-3 text-sm font-medium text-orange-600">
+                  ⚠ Cần tạo phiếu nhập hàng trước khi chuyển cho Manager duyệt
+                </p>
+              )}
 
-              <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div>
-                  <p className="mb-1 text-lg text-slate-500">Khách hàng</p>
-                  <p className="text-2xl font-semibold text-slate-900">
-                    {selectedOrder.customerName}
-                  </p>
+            {selectedOrder.type === "Pre-order" &&
+              selectedOrder.status === "Chờ duyệt" && (
+                <div className="mt-4 flex items-center gap-2 rounded-2xl border border-yellow-200 bg-yellow-50 px-4 py-3 text-yellow-700">
+                  <Clock3 size={18} />
+                  <span className="font-medium">
+                    Phiếu nhập đang chờ Manager duyệt
+                  </span>
+                </div>
+              )}
+          </div>
+
+          {/* PRODUCT */}
+          <div className="mb-5 rounded-3xl bg-slate-50 p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl bg-white">
+                  <img
+                    src={selectedOrder.item?.image}
+                    alt={selectedOrder.item?.name}
+                    className="h-full w-full object-cover"
+                  />
                 </div>
 
                 <div>
-                  <p className="mb-1 text-lg text-slate-500">Địa chỉ</p>
-                  <p className="text-2xl font-semibold text-slate-900">
-                    {selectedOrder.address}
+                  <p className="text-2xl font-medium text-slate-900">
+                    {selectedOrder.item?.name}
                   </p>
                 </div>
               </div>
 
-              <div className="mb-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h3 className="mb-3 text-2xl font-semibold text-slate-900">
-                  Nhiệm vụ vận hành
+              <p className="text-2xl font-semibold text-slate-900">
+                {formatCurrency(selectedOrder.item?.price)}
+              </p>
+            </div>
+          </div>
+
+          {/* IMPORT RECEIPT */}
+          {selectedOrder.importReceipt && (
+            <div className="mb-5 rounded-3xl bg-yellow-50 p-5">
+              <div className="mb-4 flex items-center gap-3">
+                <ClipboardList size={20} className="text-yellow-700" />
+                <h3 className="text-xl font-semibold text-yellow-800">
+                  Phiếu nhập hàng
                 </h3>
+              </div>
 
-                <p className="text-lg leading-8 text-slate-600">
-                  {getOperationTask(selectedOrder)}
+              <div className="grid grid-cols-1 gap-3 text-base text-slate-800 md:grid-cols-2">
+                <p>Mã phiếu: {selectedOrder.importReceipt.receiptCode}</p>
+                <p>Số lượng: {selectedOrder.importReceipt.quantity}</p>
+                <p>Nhà cung cấp: {selectedOrder.importReceipt.supplier}</p>
+                <p>Ngày tạo: {selectedOrder.importReceipt.createdAt}</p>
+                <p>
+                  Trạng thái phiếu:{" "}
+                  {selectedOrder.importReceipt.status === "Pending"
+                    ? "Chờ duyệt"
+                    : selectedOrder.importReceipt.status}
+                </p>
+                {selectedOrder.importReceipt.note && (
+                  <p className="md:col-span-2">
+                    Ghi chú: {selectedOrder.importReceipt.note}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* PRESCRIPTION */}
+          {selectedOrder.prescription && (
+            <div className="mb-5 rounded-3xl bg-teal-50 p-5">
+              <h3 className="mb-4 text-xl font-semibold text-teal-800">
+                Thông tin toa kính
+              </h3>
+
+              <div className="grid grid-cols-1 gap-3 text-lg text-slate-800 md:grid-cols-2">
+                <p>L-SPH: {selectedOrder.prescription.leftSPH}</p>
+                <p>R-SPH: {selectedOrder.prescription.rightSPH}</p>
+                <p>PD: {selectedOrder.prescription.pd}</p>
+                <p>Loại tròng: {selectedOrder.prescription.lensType}</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT ACTION PANEL */}
+        <div className="min-h-0 border-t border-slate-200 bg-slate-50 px-6 py-6 lg:border-l lg:border-t-0">
+          <div className="sticky top-0 space-y-5">
+            {/* Processing */}
+            {isProcessingModal && (
+              <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="mb-3 flex items-center gap-3">
+                  <Package size={20} className="text-slate-700" />
+                  <h3 className="text-lg font-semibold text-slate-900">
+                    Xử lý nội bộ
+                  </h3>
+                </div>
+
+                <p className="mb-4 text-sm leading-7 text-slate-600">
+                  Upload ảnh sản phẩm / đóng gói để lưu minh chứng xử lý.
                 </p>
 
-                {selectedOrder.type === "Pre-order" &&
-                  selectedOrder.status === "Chờ nhập hàng" && (
-                    <p className="mt-3 text-sm font-medium text-orange-600">
-                      ⚠ Cần tạo phiếu nhập hàng trước khi chuyển cho Manager duyệt
-                    </p>
-                  )}
+                <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-teal-300 bg-white px-4 py-8 text-center transition hover:bg-teal-50">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleUploadImages}
+                    className="hidden"
+                  />
+                  <Upload size={28} className="mb-2 text-slate-400" />
+                  <span className="text-sm font-medium text-slate-600">
+                    Kéo thả hoặc click để upload
+                  </span>
+                </label>
 
-                {selectedOrder.type === "Pre-order" &&
-                  selectedOrder.status === "Chờ duyệt" && (
-                    <div className="mt-4 flex items-center gap-2 rounded-2xl border border-yellow-200 bg-yellow-50 px-4 py-3 text-yellow-700">
-                      <Clock3 size={18} />
-                      <span className="font-medium">
-                        Phiếu nhập đang chờ Manager duyệt
-                      </span>
-                    </div>
-                  )}
-              </div>
-
-              <div className="mb-8 rounded-3xl bg-slate-50 p-4">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl bg-white">
-                      <img
-                        src={selectedOrder.item?.image}
-                        alt={selectedOrder.item?.name}
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-
-                    <div>
-                      <p className="text-2xl font-medium text-slate-900">
-                        {selectedOrder.item?.name}
-                      </p>
-                    </div>
-                  </div>
-
-                  <p className="text-2xl font-semibold text-slate-900">
-                    {formatCurrency(selectedOrder.item?.price)}
-                  </p>
-                </div>
-              </div>
-
-              {selectedOrder.importReceipt && (
-                <div className="mb-8 rounded-3xl bg-yellow-50 p-6">
-                  <div className="mb-4 flex items-center gap-3">
-                    <ClipboardList size={22} className="text-yellow-700" />
-                    <h3 className="text-2xl font-semibold text-yellow-800">
-                      Phiếu nhập hàng
-                    </h3>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-4 text-lg text-slate-800 md:grid-cols-2">
-                    <p>Mã phiếu: {selectedOrder.importReceipt.receiptCode}</p>
-                    <p>Số lượng: {selectedOrder.importReceipt.quantity}</p>
-                    <p>Nhà cung cấp: {selectedOrder.importReceipt.supplier}</p>
-                    <p>Ngày tạo: {selectedOrder.importReceipt.createdAt}</p>
-                    <p>
-                      Trạng thái phiếu:{" "}
-                      {selectedOrder.importReceipt.status === "Pending"
-                        ? "Chờ duyệt"
-                        : selectedOrder.importReceipt.status}
-                    </p>
-                    {selectedOrder.importReceipt.note && (
-                      <p className="md:col-span-2">
-                        Ghi chú: {selectedOrder.importReceipt.note}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {selectedOrder.prescription && (
-                <div className="mb-8 rounded-3xl bg-teal-50 p-6">
-                  <h3 className="mb-4 text-2xl font-semibold text-teal-800">
-                    Thông tin toa kính
-                  </h3>
-
-                  <div className="grid grid-cols-1 gap-4 text-xl text-slate-800 md:grid-cols-2">
-                    <p>L-SPH: {selectedOrder.prescription.leftSPH}</p>
-                    <p>R-SPH: {selectedOrder.prescription.rightSPH}</p>
-                    <p>PD: {selectedOrder.prescription.pd}</p>
-                    <p>Loại tròng: {selectedOrder.prescription.lensType}</p>
-                  </div>
-                </div>
-              )}
-
-              {isProcessingModal && (
-                <>
-                  <div className="mb-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <div className="mb-4 flex items-center gap-3">
-                      <Package size={22} className="text-slate-700" />
-                      <h3 className="text-2xl font-semibold text-slate-900">
-                        Xử lý nội bộ
-                      </h3>
-                    </div>
-
-                    <p className="text-lg leading-8 text-slate-600">
-                      Ở bước này Operation Staff thực hiện xử lý nội bộ theo đúng loại đơn.
-                      Riêng pre-order chỉ được tiếp tục sau khi Manager duyệt phiếu nhập.
-                    </p>
-                  </div>
-
-                  <div className="mb-8">
-                    <h3 className="mb-4 text-2xl font-semibold text-slate-900">
-                      Upload ảnh sản phẩm / đóng gói
-                    </h3>
-
-                    <label className="flex cursor-pointer flex-col items-center justify-center rounded-3xl border-2 border-dashed border-teal-300 bg-white px-6 py-12 text-center transition hover:bg-teal-50">
-                      <input
-                        type="file"
-                        multiple
-                        accept="image/*"
-                        onChange={handleUploadImages}
-                        className="hidden"
-                      />
-                      <Upload size={34} className="mb-3 text-slate-400" />
-                      <span className="text-xl font-medium text-slate-600">
-                        Kéo thả hoặc click để upload
-                      </span>
-                    </label>
-
-                    {previewImages.length > 0 && (
-                      <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
-                        {previewImages.map((img, index) => (
-                          <div
-                            key={`${img.name}-${index}`}
-                            className="relative overflow-hidden rounded-2xl border border-slate-200"
-                          >
-                            <img
-                              src={img.preview}
-                              alt={img.name}
-                              className="h-36 w-full object-cover"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleRemovePreview(index)}
-                              className="absolute right-2 top-2 rounded-full bg-black/70 px-2 py-1 text-xs font-medium text-white"
-                            >
-                              X
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-
-              {isPreOrderModal && (
-                <div className="mb-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                  <div className="mb-4 flex items-center gap-3">
-                    <ClipboardList className="text-slate-700" size={22} />
-                    <h3 className="text-2xl font-semibold text-slate-900">
-                      Nhập hàng Pre-order
-                    </h3>
-                  </div>
-
-                  <p className="mb-4 text-lg leading-8 text-slate-600">
-                    Operation Staff tạo phiếu nhập hàng. Sau đó đơn sẽ chuyển sang Chờ duyệt để Manager xử lý.
-                  </p>
-
-                  {selectedOrder.status === "Chờ nhập hàng" && (
-                    <button
-                      type="button"
-                      onClick={handleOpenImportModal}
-                      className="rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-4 text-lg font-semibold text-white transition hover:opacity-90"
-                    >
-                      Tạo phiếu nhập hàng
-                    </button>
-                  )}
-
-                  {selectedOrder.status === "Chờ duyệt" && (
-                    <div className="rounded-2xl border border-yellow-200 bg-yellow-50 px-4 py-4 text-yellow-700">
-                      Phiếu đã tạo xong. Đơn đang chờ Manager duyệt.
-                    </div>
-                  )}
-
-                  {selectedOrder.status === "Đã nhập hàng" && (
-                    <div className="rounded-2xl border border-lime-200 bg-lime-50 px-4 py-4 text-lime-700">
-                      Đơn đã được Manager duyệt nhập hàng và có thể tiếp tục xử lý.
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {isDeliveryModal && (
-                <div className="mb-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                  <div className="mb-4 flex items-center gap-3">
-                    <Truck className="text-slate-700" size={22} />
-                    <h3 className="text-2xl font-semibold text-slate-900">
-                      Giao hàng
-                    </h3>
-                  </div>
-
-                  <p className="mb-4 text-lg leading-8 text-slate-600">
-                    Tại bước này Operation Staff bàn giao đơn cho đơn vị vận chuyển và nhập mã vận đơn.
-                    Khi khách hàng nhận được hàng, phía khách sẽ xác nhận hoàn thành trên website.
-                  </p>
-
-                  {selectedOrder.status === "Sẵn sàng giao hàng" && (
-                    <>
-                      <select
-                        value={shippingForm.carrier}
-                        onChange={(e) =>
-                          handleShippingChange("carrier", e.target.value)
-                        }
-                        className="w-full rounded-2xl border-2 border-teal-500 bg-white px-5 py-4 text-xl outline-none"
+                {previewImages.length > 0 && (
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    {previewImages.map((img, index) => (
+                      <div
+                        key={`${img.name}-${index}`}
+                        className="relative overflow-hidden rounded-2xl border border-slate-200"
                       >
-                        <option value="">Chọn đơn vị vận chuyển</option>
-                        <option value="GHTK">GHTK</option>
-                        <option value="GHN">GHN</option>
-                        <option value="Viettel Post">Viettel Post</option>
-                        <option value="J&T Express">J&T Express</option>
-                      </select>
+                        <img
+                          src={img.preview}
+                          alt={img.name}
+                          className="h-24 w-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemovePreview(index)}
+                          className="absolute right-2 top-2 rounded-full bg-black/70 px-2 py-1 text-xs font-medium text-white"
+                        >
+                          X
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
-                      <input
-                        type="text"
-                        value={shippingForm.trackingCode}
-                        onChange={(e) =>
-                          handleShippingChange("trackingCode", e.target.value)
-                        }
-                        placeholder="Nhập mã vận đơn"
-                        className="mt-4 w-full rounded-2xl border border-slate-200 px-5 py-4 text-xl outline-none transition focus:border-slate-400"
-                      />
-                    </>
-                  )}
-
-                  {selectedOrder.status === "Đang giao hàng" && (
-                    <div className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-4 text-blue-700">
-                      Đơn hàng đang giao tới khách. Khách hàng sẽ xác nhận đã nhận hàng để hệ thống chuyển sang Hoàn thành.
-                    </div>
-                  )}
-
-                  {selectedOrder.status === "Hoàn thành" && (
-                    <div className="rounded-2xl border border-green-200 bg-green-50 px-4 py-4 text-green-700">
-                      Đơn hàng đã được khách xác nhận nhận thành công.
-                    </div>
-                  )}
+            {/* Pre-order */}
+            {isPreOrderModal && (
+              <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="mb-3 flex items-center gap-3">
+                  <ClipboardList className="text-slate-700" size={20} />
+                  <h3 className="text-lg font-semibold text-slate-900">
+                    Nhập hàng Pre-order
+                  </h3>
                 </div>
-              )}
 
-              <div className="flex flex-wrap items-center gap-4">
+                <p className="mb-4 text-sm leading-7 text-slate-600">
+                  Operation Staff tạo phiếu nhập hàng, sau đó đơn sẽ chuyển sang
+                  Chờ duyệt để Manager xử lý.
+                </p>
+
+                {selectedOrder.status === "Chờ nhập hàng" && (
+                  <button
+                    type="button"
+                    onClick={handleOpenImportModal}
+                    className="w-full rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-3 font-semibold text-white transition hover:opacity-90"
+                  >
+                    Tạo phiếu nhập hàng
+                  </button>
+                )}
+
+                {selectedOrder.status === "Chờ duyệt" && (
+                  <div className="rounded-2xl border border-yellow-200 bg-yellow-50 px-4 py-4 text-sm text-yellow-700">
+                    Phiếu đã tạo xong. Đơn đang chờ Manager duyệt.
+                  </div>
+                )}
+
+                {selectedOrder.status === "Đã nhập hàng" && (
+                  <div className="rounded-2xl border border-lime-200 bg-lime-50 px-4 py-4 text-sm text-lime-700">
+                    Đơn đã được Manager duyệt nhập hàng và có thể tiếp tục xử lý.
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Delivery */}
+            {isDeliveryModal && (
+              <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="mb-3 flex items-center gap-3">
+                  <Truck className="text-slate-700" size={20} />
+                  <h3 className="text-lg font-semibold text-slate-900">
+                    Giao hàng
+                  </h3>
+                </div>
+
+                <p className="mb-4 text-sm leading-7 text-slate-600">
+                  Nhập đơn vị vận chuyển và mã vận đơn trước khi bàn giao.
+                </p>
+
+                {selectedOrder.status === "Sẵn sàng giao hàng" && (
+                  <>
+                    <select
+                      value={shippingForm.carrier}
+                      onChange={(e) =>
+                        handleShippingChange("carrier", e.target.value)
+                      }
+                      className="w-full rounded-2xl border-2 border-teal-500 bg-white px-4 py-3 text-base outline-none"
+                    >
+                      <option value="">Chọn đơn vị vận chuyển</option>
+                      <option value="GHTK">GHTK</option>
+                      <option value="GHN">GHN</option>
+                      <option value="Viettel Post">Viettel Post</option>
+                      <option value="J&T Express">J&T Express</option>
+                    </select>
+
+                    <input
+                      type="text"
+                      value={shippingForm.trackingCode}
+                      onChange={(e) =>
+                        handleShippingChange("trackingCode", e.target.value)
+                      }
+                      placeholder="Nhập mã vận đơn"
+                      className="mt-3 w-full rounded-2xl border border-slate-200 px-4 py-3 text-base outline-none transition focus:border-slate-400"
+                    />
+                  </>
+                )}
+
+                {selectedOrder.status === "Đang giao hàng" && (
+                  <div className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-4 text-sm text-blue-700">
+                    Đơn đang giao tới khách. Khách hàng sẽ xác nhận đã nhận hàng.
+                  </div>
+                )}
+
+                {selectedOrder.status === "Hoàn thành" && (
+                  <div className="rounded-2xl border border-green-200 bg-green-50 px-4 py-4 text-sm text-green-700">
+                    Đơn hàng đã hoàn thành.
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ACTION BUTTONS */}
+            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="flex flex-col gap-3">
                 <button
                   type="button"
                   onClick={handleCloseOrder}
-                  className="rounded-2xl border border-slate-200 px-6 py-4 text-lg font-semibold text-slate-700 transition hover:bg-slate-50"
+                  className="rounded-2xl border border-slate-200 px-5 py-3 font-semibold text-slate-700 transition hover:bg-slate-50"
                 >
                   Đóng
                 </button>
 
                 {isProcessingModal &&
                   !(selectedOrder.type === "Pre-order" &&
-                    ["Chờ nhập hàng", "Chờ duyệt"].includes(selectedOrder.status)) && (
+                    ["Chờ nhập hàng", "Chờ duyệt"].includes(
+                      selectedOrder.status
+                    )) && (
                     <button
                       type="button"
                       onClick={handleUpdateProcessingStatus}
                       disabled={selectedOrder.status === "Sẵn sàng giao hàng"}
-                      className={`rounded-2xl px-6 py-4 text-lg font-semibold text-white transition ${
+                      className={`rounded-2xl px-5 py-3 font-semibold text-white transition ${
                         selectedOrder.status === "Sẵn sàng giao hàng"
                           ? "cursor-not-allowed bg-slate-300"
                           : "bg-gradient-to-r from-teal-500 to-blue-500 hover:opacity-90"
@@ -1182,7 +1210,7 @@ export default function OperationPage() {
                       selectedOrder.status === "Đang giao hàng" ||
                       selectedOrder.status === "Hoàn thành"
                     }
-                    className={`rounded-2xl px-6 py-4 text-lg font-semibold text-white transition ${
+                    className={`rounded-2xl px-5 py-3 font-semibold text-white transition ${
                       selectedOrder.status === "Đang giao hàng" ||
                       selectedOrder.status === "Hoàn thành"
                         ? "cursor-not-allowed bg-slate-300"
@@ -1200,7 +1228,10 @@ export default function OperationPage() {
             </div>
           </div>
         </div>
-      )}
+      </div>
+    </div>
+  </div>
+)}
 
       {isImportModalOpen && selectedOrder && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 px-4">

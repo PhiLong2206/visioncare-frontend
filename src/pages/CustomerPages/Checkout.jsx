@@ -2,7 +2,8 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useCart } from "../../context/CartContext";
-import { createNewOrder } from "../../utils/orderStorage";
+
+const ORDER_API = "/api/Orders";
 
 function getOrderTypeLabel(orderType) {
   switch (orderType) {
@@ -30,6 +31,15 @@ function getOrderTypeClass(orderType) {
   }
 }
 
+function getAccessToken() {
+  return (
+    localStorage.getItem("token") ||
+    localStorage.getItem("accessToken") ||
+    localStorage.getItem("authToken") ||
+    ""
+  );
+}
+
 function Checkout() {
   const navigate = useNavigate();
   const { cartItems, totalPrice, clearCart } = useCart();
@@ -44,6 +54,8 @@ function Checkout() {
     ward: "Bến Nghé",
     paymentMethod: "cod",
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const shippingFee = useMemo(() => {
     if (totalPrice >= 2000000) return 0;
@@ -86,22 +98,68 @@ function Checkout() {
     return true;
   };
 
-  const handlePlaceOrder = () => {
+  const buildOrderType = () => {
+    return "Online";
+  };
+
+  const buildShippingAddress = () => {
+    return `${formData.fullName} - ${formData.phone} - ${formData.address}, ${formData.ward}, ${formData.district}, ${formData.city}`;
+  };
+
+  const handlePlaceOrder = async () => {
     if (!validateForm()) return;
 
-    const orderCustomerInfo = {
-      fullName: formData.fullName,
-      phone: formData.phone,
-      email: formData.email,
-      address: `${formData.address}, ${formData.ward}, ${formData.district}, ${formData.city}`,
-      paymentMethod: formData.paymentMethod,
-    };
+    const token = getAccessToken();
+    if (!token) {
+      toast.error("Bạn cần đăng nhập trước khi đặt hàng.");
+      navigate("/login");
+      return;
+    }
 
-    createNewOrder(cartItems, finalTotal, orderCustomerInfo);
-    clearCart();
+    try {
+      setIsSubmitting(true);
 
-    toast.success("Đặt hàng thành công!");
-    navigate("/orders");
+      const payload = {
+        shippingAddress: buildShippingAddress(),
+        orderType: buildOrderType(),
+      };
+
+      console.log("CHECKOUT PAYLOAD:", payload);
+
+      const response = await fetch(ORDER_API, {
+        method: "POST",
+        headers: {
+          accept: "*/*",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const contentType = response.headers.get("content-type") || "";
+      const responseData = contentType.includes("application/json")
+        ? await response.json()
+        : await response.text();
+
+      console.log("CHECKOUT RESPONSE:", responseData);
+
+      if (!response.ok) {
+        const errorMessage =
+          responseData?.message ||
+          responseData?.title ||
+          `Đặt hàng thất bại (${response.status})`;
+        throw new Error(errorMessage);
+      }
+
+      clearCart();
+      toast.success("Đặt hàng thành công!");
+      navigate("/orders");
+    } catch (error) {
+      console.error("Create order failed:", error);
+      toast.error(error.message || "Không thể tạo đơn hàng.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!cartItems.length) {
@@ -355,9 +413,10 @@ function Checkout() {
           <button
             type="button"
             onClick={handlePlaceOrder}
-            className="mt-6 w-full rounded-2xl bg-gradient-to-r from-teal-500 to-blue-500 px-6 py-4 text-lg font-semibold text-white transition hover:opacity-90"
+            disabled={isSubmitting}
+            className="mt-6 w-full rounded-2xl bg-gradient-to-r from-teal-500 to-blue-500 px-6 py-4 text-lg font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Xác nhận đặt hàng
+            {isSubmitting ? "Đang xử lý..." : "Xác nhận đặt hàng"}
           </button>
         </div>
       </div>

@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 
 function Navbar() {
   const { cartCount } = useCart();
-  const { user, isLoggedIn, logout } = useAuth();
+  const { user, isLoggedIn, logout, isStaff } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -14,7 +14,7 @@ function Navbar() {
     navigate("/login");
   };
 
-  const dashboardLink = user?.role === "staff" ? "/staff" : "/orders";
+  const dashboardLink = isStaff() ? "/staff" : "/orders";
 
   return (
     <div className="w-full border-b border-gray-200 bg-white">
@@ -55,14 +55,14 @@ function Navbar() {
           {isLoggedIn ? (
             <>
               <span className="hidden rounded-full bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 md:inline-flex">
-                Xin chào, {user?.name}
+                Xin chào, {user?.fullName}
               </span>
 
               <Link
                 to={dashboardLink}
                 className="rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-100"
               >
-                {user?.role === "staff" ? "Staff" : "Tài khoản"}
+                {isStaff() ? "Staff" : "Tài khoản"}
               </Link>
 
               <button

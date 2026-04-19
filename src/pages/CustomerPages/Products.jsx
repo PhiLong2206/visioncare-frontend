@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { products } from "../../data/products";
+
+const PRODUCT_API = "/api/Product";
 
 const categories = [
   "Tất cả",
@@ -10,23 +11,59 @@ const categories = [
   "Gọng Kính",
 ];
 
+function mapCategory(apiCategory = "") {
+  const value = String(apiCategory).toLowerCase();
+
+  if (
+    value.includes("tròn") ||
+    value.includes("vuông") ||
+    value.includes("cat-eye") ||
+    value.includes("gọng")
+  ) {
+    return "Gọng Kính";
+  }
+
+  if (value.includes("râm") || value.includes("mát")) {
+    return "Kính râm";
+  }
+
+  return "Kính cận";
+}
+
+function normalizeProduct(item) {
+  const firstVariant = Array.isArray(item?.productVariants)
+    ? item.productVariants[0]
+    : null;
+
+  return {
+    id: item?.productId,
+    productName: item?.productName || "Sản phẩm",
+    categoryName: item?.category?.categoryName || "",
+    mappedCategory: mapCategory(item?.category?.categoryName || ""),
+    price: Number(item?.minPrice ?? item?.basePrice ?? 0),
+    oldPrice:
+      Number(item?.basePrice ?? 0) > Number(item?.minPrice ?? 0)
+        ? Number(item.basePrice)
+        : null,
+    image:
+      item?.image2D ||
+      "https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=1200&q=80",
+    stock: Number(item?.totalStock ?? 0),
+    color: firstVariant?.color || "Nhiều màu",
+    size: firstVariant?.size || "M",
+    rating: 4.8,
+    reviews: 12,
+    isPreOrder: Boolean(item?.isPreOrder),
+  };
+}
+
 function getAvailability(item) {
-  const hasPreOrder = item.availableOrderTypes?.includes("pre-order");
   const isOutOfStock = Number(item.stock || 0) === 0;
 
-  if (isOutOfStock && hasPreOrder) {
+  if (isOutOfStock && item.isPreOrder) {
     return {
       label: "Hết hàng - đặt trước",
       className: "bg-amber-50 text-amber-700 border-amber-200",
-      helperText: "Sản phẩm đang hết hàng, bạn vẫn có thể đặt trước",
-    };
-  }
-
-  if (!isOutOfStock && hasPreOrder) {
-    return {
-      label: "Có sẵn + đặt trước",
-      className: "bg-amber-50 text-amber-700 border-amber-200",
-      helperText: "Sản phẩm có sẵn và hỗ trợ đặt trước",
     };
   }
 
@@ -34,21 +71,52 @@ function getAvailability(item) {
     return {
       label: "Hết hàng",
       className: "bg-slate-100 text-slate-600 border-slate-200",
-      helperText: "Sản phẩm hiện đang tạm hết hàng",
     };
   }
 
   return {
     label: "Có sẵn",
     className: "bg-green-50 text-green-700 border-green-200",
-    helperText: "",
   };
 }
 
 function Products() {
+  const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("Tất cả");
   const [sortOption, setSortOption] = useState("default");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const res = await fetch(PRODUCT_API);
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        console.log("API:", data);
+
+        const rawProducts = Array.isArray(data?.data) ? data.data : [];
+        const normalizedProducts = rawProducts.map(normalizeProduct);
+
+        setProducts(normalizedProducts);
+      } catch (err) {
+        console.error("FetchProducts error:", err);
+        setError("Không tải được sản phẩm.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   const handleResetFilters = () => {
     setSearchTerm("");
@@ -58,14 +126,19 @@ function Products() {
 
   const filteredProducts = useMemo(() => {
     let result = products.filter((item) => {
-      const matchCategory =
-        activeCategory === "Tất cả" || item.category === activeCategory;
-
+      const name = (item.productName || "").toLowerCase();
+      const category = (item.categoryName || "").toLowerCase();
+      const mappedCategory = (item.mappedCategory || "").toLowerCase();
       const keyword = searchTerm.trim().toLowerCase();
+
+      const matchCategory =
+        activeCategory === "Tất cả" ||
+        mappedCategory === activeCategory.toLowerCase();
+
       const matchSearch =
-        item.name.toLowerCase().includes(keyword) ||
-        item.category.toLowerCase().includes(keyword) ||
-        (item.frameType || "").toLowerCase().includes(keyword) ||
+        name.includes(keyword) ||
+        category.includes(keyword) ||
+        mappedCategory.includes(keyword) ||
         (item.color || "").toLowerCase().includes(keyword);
 
       return matchCategory && matchSearch;
@@ -76,19 +149,25 @@ function Products() {
     } else if (sortOption === "price-desc") {
       result = [...result].sort((a, b) => b.price - a.price);
     } else if (sortOption === "name-asc") {
-      result = [...result].sort((a, b) => a.name.localeCompare(b.name));
+      result = [...result].sort((a, b) =>
+        a.productName.localeCompare(b.productName)
+      );
     } else if (sortOption === "rating-desc") {
       result = [...result].sort((a, b) => b.rating - a.rating);
     }
 
     return result;
-  }, [searchTerm, activeCategory, sortOption]);
+  }, [products, searchTerm, activeCategory, sortOption]);
+
+  if (loading) {
+    return <div className="py-20 text-center">Đang tải sản phẩm...</div>;
+  }
 
   return (
     <section className="mx-auto max-w-7xl px-6 py-10">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900">Sản phẩm</h1>
-        <p className="mt-2 text-slate-500">
+        <h1 className="mb-2 text-3xl font-bold text-slate-900">Sản phẩm</h1>
+        <p className="text-slate-500">
           Khám phá các mẫu kính nổi bật của VisionCare
         </p>
       </div>
@@ -98,7 +177,7 @@ function Products() {
           <div className="w-full lg:max-w-md">
             <input
               type="text"
-              placeholder="Tìm kính theo tên, màu sắc, kiểu dáng..."
+              placeholder="Tìm sản phẩm..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
@@ -130,23 +209,28 @@ function Products() {
           </div>
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-3">
-          {categories.map((category) => (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {categories.map((c) => (
             <button
-              key={category}
-              type="button"
-              onClick={() => setActiveCategory(category)}
+              key={c}
+              onClick={() => setActiveCategory(c)}
               className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                activeCategory === category
+                activeCategory === c
                   ? "bg-slate-900 text-white"
                   : "border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900"
               }`}
             >
-              {category}
+              {c}
             </button>
           ))}
         </div>
       </div>
+
+      {error && (
+        <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       <div className="mb-5 text-sm text-slate-500">
         Tìm thấy{" "}
@@ -159,15 +243,12 @@ function Products() {
       {filteredProducts.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-3xl bg-white p-12 text-center shadow-sm">
           <div className="text-5xl">🔍</div>
-
           <h2 className="mt-4 text-2xl font-bold text-slate-900">
             Không tìm thấy sản phẩm
           </h2>
-
           <p className="mt-2 text-slate-500">
             Thử thay đổi từ khóa hoặc bộ lọc
           </p>
-
           <button
             onClick={handleResetFilters}
             className="mt-6 rounded-2xl bg-slate-900 px-6 py-3 text-white hover:opacity-90"
@@ -184,22 +265,20 @@ function Products() {
               <Link
                 key={item.id}
                 to={`/product/${item.id}`}
-                className="block overflow-hidden rounded-2xl bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+                className="overflow-hidden rounded-2xl border bg-white transition hover:-translate-y-1 hover:shadow-md"
               >
                 <div className="relative h-60 overflow-hidden bg-slate-50">
                   <img
                     src={item.image}
-                    alt={item.name}
+                    alt={item.productName}
                     className="h-full w-full object-cover transition duration-300 hover:scale-105"
+                    onError={(e) => {
+                      e.currentTarget.src =
+                        "https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=1200&q=80";
+                    }}
                   />
 
-                  <div className="absolute left-3 top-3 flex flex-col gap-2">
-                    {item.discount && (
-                      <span className="rounded-full bg-red-500 px-3 py-1 text-xs font-medium text-white">
-                        {item.discount}
-                      </span>
-                    )}
-
+                  <div className="absolute left-3 top-3">
                     <span
                       className={`rounded-full border px-3 py-1 text-xs font-medium ${availability.className}`}
                     >
@@ -209,17 +288,14 @@ function Products() {
                 </div>
 
                 <div className="p-4">
-                  <p className="text-sm text-slate-500">
-                    {item.category}
-                    {item.frameType ? ` · ${item.frameType}` : ""}
-                  </p>
+                  <p className="text-sm text-slate-500">{item.mappedCategory}</p>
 
-                  <h3 className="mt-1 text-lg font-semibold text-slate-900">
-                    {item.name}
+                  <h3 className="mt-1 min-h-[56px] text-lg font-semibold text-slate-900">
+                    {item.productName}
                   </h3>
 
                   <div className="mt-2 flex items-center gap-2">
-                    <span className="text-lg font-bold text-teal-600">
+                    <span className="text-lg font-bold text-green-600">
                       {item.price.toLocaleString("vi-VN")} đ
                     </span>
 
@@ -231,19 +307,15 @@ function Products() {
                   </div>
 
                   <div className="mt-2 flex items-center gap-2 text-sm text-slate-500">
-                    <span className="text-yellow-500">⭐ {item.rating}</span>
+                    <span className="text-yellow-500">
+                      ⭐ {item.rating.toFixed(1)}
+                    </span>
                     <span>({item.reviews} đánh giá)</span>
                   </div>
 
                   <p className="mt-2 text-sm text-slate-500">
                     {item.color} · {item.size}
                   </p>
-
-                  {availability.helperText && (
-                    <p className="mt-3 text-sm font-medium text-amber-700">
-                      {availability.helperText}
-                    </p>
-                  )}
                 </div>
               </Link>
             );

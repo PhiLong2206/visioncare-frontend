@@ -3,10 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
 
-const STAFF_ROLE_IDS = [1, 2, 3];
-const STAFF_ROLE_NAMES = ["Admin", "Manager", "Sales"];
-const OPERATION_ROLE_ID = 4;
-const OPERATION_ROLE_NAME = "Operations";
+const ROLE_PATHS = {
+  1: "/admin",
+  2: "/manager",
+  3: "/staff",
+  4: "/operation",
+  5: "/",
+};
 
 function Login() {
   const navigate = useNavigate();
@@ -26,24 +29,32 @@ function Login() {
     }));
   };
 
-  const isGeneralStaffUser = (authUser) => {
-    if (!authUser) return false;
+  const getRoleId = (authUser) => {
+    if (!authUser) return null;
 
-    if (authUser.roleId != null) {
-      return STAFF_ROLE_IDS.includes(Number(authUser.roleId));
-    }
+    // thử lấy roleId từ nhiều field backend có thể trả về
+    const rawRole =
+      authUser.roleId ??
+      authUser.RoleId ??
+      authUser.role ??
+      authUser.Role ??
+      authUser?.user?.roleId ??
+      authUser?.user?.RoleId ??
+      authUser?.user?.role ??
+      authUser?.user?.Role;
 
-    return STAFF_ROLE_NAMES.includes(authUser.role);
+    const roleId = Number(rawRole);
+    return Number.isNaN(roleId) ? null : roleId;
   };
 
-  const isOperationUser = (authUser) => {
-    if (!authUser) return false;
+  const redirectByRole = (authUser) => {
+    const roleId = getRoleId(authUser);
 
-    if (authUser.roleId != null) {
-      return Number(authUser.roleId) === OPERATION_ROLE_ID;
-    }
+    console.log("authUser:", authUser);
+    console.log("roleId detect:", roleId);
 
-    return authUser.role === OPERATION_ROLE_NAME;
+    const path = ROLE_PATHS[roleId] || "/";
+    navigate(path, { replace: true });
   };
 
   const handleSubmit = async (e) => {
@@ -58,21 +69,16 @@ function Login() {
       setIsSubmitting(true);
 
       const authUser = await login({
-        email: formData.email,
+        email: formData.email.trim(),
         password: formData.password,
       });
 
-      toast.success("Đăng nhập thành công!");
+      console.log("Login response:", authUser);
 
-      if (isOperationUser(authUser)) {
-        navigate("/operation");
-      } else if (isGeneralStaffUser(authUser)) {
-        navigate("/staff");
-      } else {
-        navigate("/");
-      }
+      toast.success("Đăng nhập thành công!");
+      redirectByRole(authUser);
     } catch (error) {
-      console.error(error);
+      console.error("Login error:", error);
       toast.error(error.message || "Đăng nhập thất bại.");
     } finally {
       setIsSubmitting(false);
